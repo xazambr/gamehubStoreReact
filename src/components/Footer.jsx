@@ -34,7 +34,7 @@ export default function Footer() {
     <section class="footer-contact">
       <h3>Contacto</h3>
       <address>
-        <p>📧 >soporte@gamehub.cl</p>
+        <p>📧soporte@gamehub.cl</p>
         <p>📞 +56 2 2345 6789</p>
         <p>🕐 <time datetime="Mo-Fr 09:00-18:00">Lun–Vie 9:00–18:00</time></p>
         <p>📍 Santiago, Chile</p>
