@@ -2,13 +2,13 @@ export default function Footer() {
   return (
     <footer>
 
-    <section class="footer-brand">
+    <section className="footer-brand">
       <h2>GAMEHUB STORE</h2>
       <p>La tienda gamer más completa de Chile.</p>
       <p>Notebooks, GPUs, consolas, periféricos y más</p>
     </section>
 
-    <nav aria-label="Categorías de productos" class="footer-nav">
+    <nav aria-label="Categorías de productos" className="footer-nav">
       <h3>Categorías</h3>
       <ul>
         <li><a href="#">Notebooks</a></li>
@@ -20,7 +20,7 @@ export default function Footer() {
       </ul>
     </nav>
 
-    <nav aria-label="Enlaces de ayuda" class="footer-nav">
+    <nav aria-label="Enlaces de ayuda" className="footer-nav">
       <h3>Ayuda</h3>
       <ul>
         <li>Preguntas Frecuentes</li>
@@ -31,12 +31,12 @@ export default function Footer() {
       </ul>
     </nav>
 
-    <section class="footer-contact">
+    <section className="footer-contact">
       <h3>Contacto</h3>
       <address>
         <p>📧soporte@gamehub.cl</p>
         <p>📞 +56 2 2345 6789</p>
-        <p>🕐 <time datetime="Mo-Fr 09:00-18:00">Lun–Vie 9:00–18:00</time></p>
+        <p>🕐 <time dateTime="Mo-Fr 09:00-18:00">Lun–Vie 9:00–18:00</time></p>
         <p>📍 Santiago, Chile</p>
       </address>
     </section>
