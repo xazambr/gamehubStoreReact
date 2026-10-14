@@ -5,6 +5,7 @@
   --color-acento: #00D2FF;
   --color-texto: #F3EFFA;
   --color-error: #FF7A7A;
+  --color-muted: #9b91b8;
   --radio-borde: 8px;
 }
 
@@ -26,3 +27,9 @@ body {
   color: var(--color-error);
 }
 
+* { box-sizing: border-box; }
+
+a {
+  color: var(--color-acento);
+  text-decoration: none;
+}
