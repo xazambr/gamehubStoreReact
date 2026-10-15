@@ -1,18 +1,21 @@
-import "./TarjetaCategorias.css";
+import { Link } from 'react-router-dom';
+import { FaChevronRight } from 'react-icons/fa';
+import './TarjetaCategorias.css';
 
-export default function TarjetaCategorias({ title, icon }) {
+export default function TarjetaCategorias({ nombre, icono: Icono, slug }) {
   return (
-    <div className="category-card">
-      <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-        <path
-          d={icon}
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <h3 className="category-title">{title}</h3>
-    </div>
+    <Link to={`/catalogo?categoria=${slug}`} className="tarjetaCategoria">
+      <div className="iconoContenedor">
+        <Icono />
+      </div>
+      
+      <div>
+        <h6 className="nombreCategoria">{nombre}</h6>
+      </div>
+
+      <div className="flechaContenedor">
+        <FaChevronRight />
+      </div>
+    </Link>
   );
 }
