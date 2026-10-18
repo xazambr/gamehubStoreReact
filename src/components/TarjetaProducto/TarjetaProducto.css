@@ -1,0 +1,130 @@
+.cardGamer {
+  background-color: var(--color-superficie);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radio-borde);
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.cardGamer:hover {
+  transform: translateY(-6px);
+  border-color: rgba(0, 210, 255, 0.4);
+  box-shadow: 0 8px 25px rgba(0, 210, 255, 0.15);
+}
+
+.contenedorImagen {
+  position: relative;
+  background-color: #120E1A;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.imagenProducto {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.cardGamer:hover .imagenProducto {
+  transform: scale(1.05);
+}
+
+.badgeMarca {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: rgba(18, 14, 26, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-acento);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.badgeSinStock {
+  background-color: rgba(255, 122, 122, 0.15);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.badgeStock {
+  background-color: rgba(0, 210, 255, 0.1);
+  color: var(--color-acento);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tituloProducto {
+  color: var(--color-texto);
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.8rem;
+}
+
+.descripcionProducto {
+  color: rgba(243, 239, 250, 0.6);
+  font-size: 0.825rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.precioAcento {
+  color: var(--color-texto);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.btnAgregar {
+  background-color: var(--color-primario);
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btnAgregar:hover:not(:disabled) {
+  background-color: #e62c76;
+  box-shadow: 0 0 15px rgba(214, 35, 106, 0.4);
+}
+
+.btnAgregar:disabled {
+  background-color: #2a203b;
+  color: rgba(243, 239, 250, 0.4);
+  cursor: not-allowed;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
