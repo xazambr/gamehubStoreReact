@@ -1,33 +1,7 @@
 header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    padding: 0 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: var(--color-fondo);
     backdrop-filter: blur(18px);
-    border-bottom: 1px solid  var(--color-muted);
-}
-
-.nav-links {
-    display: flex;
-    gap: 1rem;
-    align-items: center; 
-}
-
-.nav-list {
-    list-style: none;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.nav-item {
-    border-color: var(--color-primario);
-    padding: 0.2rem, 0.25rem;
-    color: var(--color-muted);
-    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .game-logo {
@@ -49,10 +23,71 @@ header {
     letter-spacing: .15em;
 }
 
-.nav-cart {
+.nav-item {
+    text-decoration: none;
+    color: var(--color-muted);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: var(--color-texto);
+}
+
+.nav-item-active {
+    color: var(--color-texto) !important;
+    font-weight: 700;
+}
+
+.nav-item-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--color-acento);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--color-acento);
+}
+
+.btnCarrito {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-texto);
     border-radius: var(--radio-borde);
-    border-color: var(--color-muted);
-    border: 0.8px solid;
-    padding: 0.5rem;
-    background: var(--color-superficie);
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.btnCarrito:hover {
+    border-color: var(--color-acento);
+    color: var(--color-acento);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+
+.iconoCarrito {
+    font-size: 1.1rem;
+}
+
+/* Badge con la cantidad de items del carrito */
+.badgeCarrito {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: var(--color-primario);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 50%;
+    padding: 2px 6px;
 }
