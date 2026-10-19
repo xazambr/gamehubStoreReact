@@ -1,0 +1,146 @@
+.seccionCarrito {
+  background-color: var(--color-fondo);
+  min-height: calc(100vh - 80px);
+  padding: 3rem 0;
+  color: var(--color-texto);
+}
+
+.subtitulo {
+  color: var(--color-acento);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.titulo {
+  font-weight: 800;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+}
+
+/* ESTADO VACÍO */
+.contenedorVacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1rem;
+}
+
+.iconoVacioCirculo {
+  width: 70px;
+  height: 70px;
+  background-color: #1a1329;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-acento);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.controlCantidad {
+  display: inline-flex;
+  align-items: center;
+  background-color: #120E1A;
+  border-radius: 6px;
+  padding: 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btnCantidad {
+  background: none;
+  border: none;
+  color: var(--color-texto);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btnCantidad:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.numeroCantidad {
+  padding: 0 0.8rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.precioTotalLinea {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-texto);
+}
+
+.precioUnitarioText {
+  font-size: 0.75rem;
+  color: rgba(243, 239, 250, 0.5);
+}
+
+/* PANEL DE RESUMEN */
+.panelResumen {
+  background-color: var(--color-superficie);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radio-borde);
+  padding: 1.5rem;
+}
+
+.inputCupon {
+  background-color: #120E1A;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-texto);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.inputCupon:focus {
+  background-color: #120E1A;
+  color: var(--color-texto);
+  border-color: var(--color-acento);
+  box-shadow: none;
+}
+
+.btnAplicar {
+  background-color: transparent;
+  border: 1px solid var(--color-acento);
+  color: var(--color-acento);
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+}
+
+.btnAplicar:hover {
+  background-color: var(--color-acento);
+  color: #120E1A;
+}
+
+.montoTotal {
+  color: var(--color-acento);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.btnVaciar {
+  background: none;
+  border: none;
+  color: rgba(243, 239, 250, 0.6);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.btnVaciar:hover {
+  color: var(--color-error);
+}
