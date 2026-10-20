@@ -1,4 +1,4 @@
-// 1. Validar que la cantidad deseada no supere el stock disponible (Prueba 3)
+// 1. Validar que la cantidad deseada no supere el stock disponible
 export const validarStock = (cantidadDeseada, stockDisponible) => {
   if (cantidadDeseada > stockDisponible) {
     return false;
@@ -6,12 +6,12 @@ export const validarStock = (cantidadDeseada, stockDisponible) => {
   return cantidadDeseada > 0;
 };
 
-// 2. Calcular el subtotal sumando precio * cantidad de todas las líneas (Prueba 1)
+// 2. Calcular el subtotal sumando precio * cantidad de todas las líneas
 export const calcularSubtotal = (items = []) => {
   return items.reduce((total, item) => total + item.precio * item.cantidad, 0);
 };
 
-// 3. Agregar o incrementar un producto en el carrito respetando stock (Prueba 2)
+// 3. Agregar o incrementar un producto en el carrito respetando stock 
 export const agregarAlCarrito = (carritoActual = [], productoNuevo, cantidadDeseada = 1) => {
   const existe = carritoActual.find((item) => item.id === productoNuevo.id);
 
@@ -55,29 +55,24 @@ export const eliminarDelCarrito = (carritoActual = [], idProducto) => {
   return carritoActual.filter((item) => item.id !== idProducto);
 };
 
-// 6. Aplicar cupón de descuento por porcentaje (Prueba 4)
-export const aplicarCupon = (codigo, subtotal) => {
+// 6. Aplicar cupón de descuento por porcentaje
+export const aplicarCupon = (codigo) => {
   const cuponNormalizado = codigo ? codigo.trim().toUpperCase() : '';
 
   if (cuponNormalizado === 'GAMER10') {
-    const descuento = (subtotal * 10) / 100;
     return {
-      descuento,
-      porcentaje: 10,
-      valido: true,
-      mensaje: '¡Cupón del 10% aplicado con éxito!'
+      descuentoPorcentaje: 10,
+      mensaje: { tipo: 'exito', texto: '¡Cupón de 10% aplicado!' }
     };
   }
 
   return {
-    descuento: 0,
-    porcentaje: 0,
-    valido: false,
-    mensaje: 'Cupón inválido o vencido'
+    descuentoPorcentaje: 0,
+    mensaje: { tipo: 'error', texto: 'Cupón inválido o vencido' }
   };
 };
 
-// 7. Calcular el total final asegurando que nunca sea menor a 0 (Prueba 6)
+// 7. Calcular el total final asegurando que nunca sea menor a 0 
 export const calcularTotal = (subtotal, descuento = 0, costoEnvio = 0) => {
   const total = subtotal - descuento + costoEnvio;
   return total < 0 ? 0 : total;
