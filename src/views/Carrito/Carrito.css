@@ -1,23 +1,22 @@
 .seccionCarrito {
-  background-color: var(--color-fondo);
-  min-height: calc(100vh - 80px);
-  padding: 3rem 0;
-  color: var(--color-texto);
+  background-color: #0d0a14;
+  min-height: calc(100vh - 150px);
+  color: #ffffff;
 }
 
 .subtitulo {
-  color: var(--color-acento);
-  font-size: 0.85rem;
+  color: #00d2ff;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .titulo {
-  font-weight: 800;
-  font-size: 2.2rem;
+  font-weight: 900;
   letter-spacing: 1px;
+  margin-bottom: 0.5rem;
 }
 
 /* ESTADO VACÍO */
@@ -46,23 +45,26 @@
 .controlCantidad {
   display: inline-flex;
   align-items: center;
-  background-color: #120E1A;
+  background-color: #120e1a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  padding: 0.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px;
 }
 
 .btnCantidad {
-  background: none;
+  background: transparent;
   border: none;
-  color: var(--color-texto);
-  width: 28px;
-  height: 28px;
+  color: #ffffff;
+  padding: 0.25rem 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btnCantidad:hover:not(:disabled) {
+  color: #00d2ff;
 }
 
 .btnCantidad:disabled {
@@ -71,76 +73,79 @@
 }
 
 .numeroCantidad {
-  padding: 0 0.8rem;
+  padding: 0 0.75rem;
   font-weight: 700;
   font-size: 0.95rem;
 }
 
-.precioTotalLinea {
-  font-size: 1.25rem;
+.precioSubtotal {
+  color: #ffffff;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: var(--color-texto);
 }
 
-.precioUnitarioText {
-  font-size: 0.75rem;
-  color: rgba(243, 239, 250, 0.5);
+.precioUnitario {
+  color: #8c859d;
+  font-size: 0.8rem;
 }
 
-/* PANEL DE RESUMEN */
+/* Panel de Resumen */
 .panelResumen {
-  background-color: var(--color-superficie);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radio-borde);
+  background-color: #1e1730;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   padding: 1.5rem;
 }
 
 .inputCupon {
-  background-color: #120E1A;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--color-texto);
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
+  background-color: #120e1a !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
 }
 
 .inputCupon:focus {
-  background-color: #120E1A;
-  color: var(--color-texto);
-  border-color: var(--color-acento);
-  box-shadow: none;
+  border-color: #00d2ff !important;
+  box-shadow: 0 0 8px rgba(0, 210, 255, 0.3) !important;
 }
 
 .btnAplicar {
-  background-color: transparent;
-  border: 1px solid var(--color-acento);
-  color: var(--color-acento);
-  font-weight: 600;
+  background-color: rgba(0, 210, 255, 0.1);
+  border: 1px solid #00d2ff;
+  color: #00d2ff;
+  font-weight: 700;
   border-radius: 6px;
-  padding: 0.5rem 1rem;
+  padding: 0.375rem 1rem;
+  transition: background-color 0.2s ease;
 }
 
 .btnAplicar:hover {
-  background-color: var(--color-acento);
-  color: #120E1A;
+  background-color: #00d2ff;
+  color: #0d0a14;
 }
 
 .montoTotal {
-  color: var(--color-acento);
-  font-size: 1.5rem;
-  font-weight: 800;
+  color: #00d2ff;
+  font-size: 1.6rem;
+  font-weight: 900;
 }
 
-.btnVaciar {
-  background: none;
+.btnCheckout {
+  background: linear-gradient(135deg, #0072ff 0%, #00d2ff 100%);
+  color: #ffffff;
   border: none;
-  color: rgba(243, 239, 250, 0.6);
-  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.8rem;
+  border-radius: 8px;
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btnVaciar:hover {
-  color: var(--color-error);
+.btnCheckout:hover {
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
 }

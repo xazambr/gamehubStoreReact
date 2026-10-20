@@ -4,6 +4,8 @@ import { FiShoppingCart, FiArrowRight, FiTrash2, FiMinus, FiPlus } from "react-i
 import { useState } from "react";
 import { useCarrito } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import TarjetaCarrito from "../../components/TarjetaCarrito/TarjetaCarrito.jsx"
+import './Carrito.css'
 
 export default function Carrito() {
   const formatearMoneda = (valor) => `$${valor.toLocaleString('es-CL')}`;
@@ -67,153 +69,110 @@ export default function Carrito() {
 
   return (
     <Layout>
-      <div className="seccionCarrito">
+      <div className="seccionCarrito py-5">
         <div className="container">
-          <p className="subtitulo">TU SELECCIÓN</p>
-          <h2 className="titulo">CARRITO DE COMPRAS</h2>
 
-          {/* Lista de lineas de productos por ahora, reemplazar con un componente mas adelante */}
-          <div className="col-12 col-lg-8">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="text-secondary">{carrito.length} producto{carrito.length > 1 ? 's' : ''}</span>
-              <button className="btnVaciar" onClick={vaciarCarrito}>
-                <FiTrash2 /> Vaciar carrito
-              </button>
+          <div className="d-flex justify-content-between align-items-end mb-4">
+            <div>
+              <p className="subtitulo">TU SELECCIÓN</p>
+              <h1 className="titulo">CARRITO DE COMPRAS</h1>
+              <span className="text-secondary small">
+                {carrito.length} {carrito.length === 1 ? 'producto' : 'productos'} en tu lista
+              </span>
             </div>
 
-            {carrito.map((item) => (
-              <div key={item.id} className="tarjetaLinea">
-                <div className="row align-items-center g-3">
-
-                  {/* Imagen del producto */}
-                  <div className="col-auto">
-                    <img
-                      src={item.imagen}
-                      alt={item.nombre}
-                      className="imagenProducto"
-                    />
-                  </div>
-
-                  {/* Nombre, marca y botón quitar */}
-                  <div className="col">
-                    <span className="marcaText">{item.marca || 'AMD'}</span>
-                    <h5 className="nombreProducto">{item.nombre}</h5>
-                    <button
-                      className="btnQuitar"
-                      onClick={() => eliminarProducto(item.id)}
-                    >
-                      <FiTrash2 /> Quitar
-                    </button>
-                  </div>
-
-                  {/* Controles de cantidad (+ / -) */}
-                  <div className="col-auto text-end ms-auto ms-md-0">
-                    <div className="controlCantidad">
-                      <button
-                        className="btnCantidad"
-                        onClick={() => actualizarCantidad(item.id, item.cantidad - 1)}
-                        disabled={item.cantidad <= 1}
-                      >
-                        <FiMinus />
-                      </button>
-
-                      <span className="numeroCantidad">{item.cantidad}</span>
-
-                      <button
-                        className="btnCantidad"
-                        onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
-                        disabled={item.cantidad >= item.stock} // Validación de Stock
-                      >
-                        <FiPlus />
-                      </button>
-                    </div>
-
-                    {/* Subtotal de la línea */}
-                    <div className="mt-2">
-                      <div className="precioTotalLinea">
-                        {formatearMoneda(item.precio * item.cantidad)}
-                      </div>
-                      <div className="precioUnitarioText">
-                        {formatearMoneda(item.precio)} c/u
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            ))}
-
-          {/* Resumen de productos */}
-          <div className="col-12 col-lg-4">
-            <div className="panelResumen">
-              <h4 className="fw-bold mb-3">RESUMEN</h4>
-
-              {/* Formulario de Cupón */}
-              <div className="mb-4">
-                <label className="form-label text-secondary small">Código de cupón</label>
-                <form onSubmit={handleAplicarCupon} className="d-flex gap-2">
-                  <input
-                    type="text"
-                    className="form-control inputCupon"
-                    placeholder="Ej: GAMER10"
-                    value={cuponInput}
-                    onChange={(e) => setCuponInput(e.target.value)}
-                  />
-                  <button type="submit" className="btnAplicar">
-                    Aplicar
-                  </button>
-                </form>
-                {mensajeCupon.texto && (
-                  <div className={`small mt-2 ${mensajeCupon.tipo === 'exito' ? 'text-success' : 'text-danger'}`}>
-                    {mensajeCupon.texto}
-                  </div>
-                )}
-              </div>
-
-              {/* Seccion total */}
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-secondary">Subtotal</span>
-                <span className="fw-bold">{formatearMoneda(subtotal)}</span>
-              </div>
-
-              {descuentoPorcentaje > 0 && (
-                <div className="d-flex justify-content-between mb-2 text-success">
-                  <span>Descuento ({descuentoPorcentaje}%)</span>
-                  <span>-{formatearMoneda(montoDescuento)}</span>
-                </div>
-              )}
-
-              <div className="d-flex justify-content-between mb-4">
-                <span className="text-secondary">Envío</span>
-                <span className="text-success fw-bold">Gratis</span>
-              </div>
-
-              <hr className="border-secondary my-3" />
-
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <span className="fw-bold fs-5">Total</span>
-                <span className="montoTotal">{formatearMoneda(total)}</span>
-              </div>
-
-              {/* Botón Checkout */}
-              <button
-                className="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-bold"
-                onClick={() => navigate('/checkout')}
-              >
-                Proceder al checkout <FiArrowRight />
-              </button>
-
-              <div className="text-center mt-3">
-                <Link to="/catalogo" className="text-info text-decoration-none small fw-bold">
-                  Seguir comprando
-                </Link>
-              </div>
-            </div>
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+              onClick={vaciarCarrito}
+            >
+              <FiTrash2 size={13} /> Vaciar carrito
+            </button>
           </div>
 
+          <div className="row g-4">
+            {/* Lista de productos */}
+            <div className="col-12 col-lg-8">
+              {carrito.map((producto) => (
+                <TarjetaCarrito
+                  key={producto.id}
+                  item={producto}
+                  onActualizarCantidad={actualizarCantidad}
+                  onEliminar={eliminarProducto}
+                />
+              ))}
+            </div>
+
+            {/* Panel de Resumen lateral */}
+            <div className="col-12 col-lg-4">
+              <div className="panelResumen">
+                <h4 className="fw-bold mb-3 text-light">RESUMEN</h4>
+
+                {/* Formulario de Cupón */}
+                <div className="mb-4">
+                  <label className="form-label text-secondary small">Código de cupón</label>
+                  <form onSubmit={handleAplicarCupon} className="d-flex gap-2">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm inputCupon"
+                      placeholder="Ej: GAMER10"
+                      value={cuponInput}
+                      onChange={(e) => setCuponInput(e.target.value)}
+                    />
+                    <button type="submit" className="styles.btnAplicar">
+                      Aplicar
+                    </button>
+                  </form>
+                  {mensajeCupon.texto && (
+                    <div className={`small mt-2 ${mensajeCupon.tipo === 'exito' ? 'text-success' : 'text-danger'}`}>
+                      {mensajeCupon.texto}
+                    </div>
+                  )}
+                </div>
+
+                <div className="d-flex justify-content-between mb-2">
+                  <span className="text-secondary">Subtotal</span>
+                  <span className="fw-bold">{formatearMoneda(subtotal)}</span>
+                </div>
+
+                {descuentoPorcentaje > 0 && (
+                  <div className="d-flex justify-content-between mb-2 text-success">
+                    <span>Descuento ({descuentoPorcentaje}%)</span>
+                    <span>-{formatearMoneda(montoDescuento)}</span>
+                  </div>
+                )}
+
+                <div className="d-flex justify-content-between mb-3">
+                  <span className="text-secondary">Envío</span>
+                  <span className="text-success fw-bold">Gratis</span>
+                </div>
+
+                <hr className="border-secondary my-3" />
+
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <span className="fw-bold fs-5">Total</span>
+                  <span className="montoTotal">{formatearMoneda(total)}</span>
+                </div>
+
+                <button
+                  type="button"
+                  className="btnCheckout"
+                  onClick={() => navigate('/checkout')}
+                >
+                  Proceder al checkout <FiArrowRight />
+                </button>
+
+                <div className="text-center mt-3">
+                  <Link to="/catalogo" className="text-info text-decoration-none small fw-bold">
+                    Seguir comprando
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
-    </Layout >
+    </Layout>
   );
 }
