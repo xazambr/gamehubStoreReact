@@ -3,19 +3,16 @@ import { LineaOrden } from '../components/LineaOrden/LineaOrden';
 import { Link } from 'react-router-dom';
 import { FiShoppingBag, FiArrowLeft } from 'react-icons/fi';
 import Layout from "../components/Layout";
+import { obtenerOrdenesGuardadas } from '../utils/ordenes';
+import {formatearCLP} from '../utils/utils'
 
 export default function Ordenes() {
-
     const [ordenes, setOrdenes] = useState([]);
 
-    // Cargar órdenes guardadas desde localStorage
+    // Cargar órdenes guardadas al montar la vista
     useEffect(() => {
-        try {
-            const guardadas = JSON.parse(localStorage.getItem('gamehub_ordenes')) || [];
-            setOrdenes(guardadas);
-        } catch (error) {
-            console.error("Error al leer órdenes:", error);
-        }
+        const guardadas = obtenerOrdenesGuardadas();
+        setOrdenes(guardadas);
     }, []);
 
     return (
@@ -43,17 +40,18 @@ export default function Ordenes() {
                         </div>
                     ) : (
                         <div>
-                            {ordenes.map((ord) => (
+                            {ordenes.map((ord, index) => (
                                 <LineaOrden
-                                    key={ord.numero}
+                                    key={ord.numero || `orden-${index}`}
                                     orden={{
-                                        idOrden: ord.numero,
-                                        fecha: ord.fecha,
-                                        estado: ord.estado || 'Completado',
-                                        items: ord.productos,
-                                        total: ord.total,
-                                        metodoPago: ord.metodoPago
+                                        idOrden: ord.numero || `GH-${index + 1}`,
+                                        fecha: ord.fecha || 'Fecha desconocida',
+                                        estado: ord.estado || ord.estadoPago || 'Completado',
+                                        items: Array.isArray(ord.productos) ? ord.productos : [],
+                                        total: Number(ord.total) || 0,
+                                        metodoPago: ord.metodoPago || ord.cliente?.metodoPago || 'Tarjeta'
                                     }}
+                                    formatearCLP={formatearCLP}
                                 />
                             ))}
                         </div>
@@ -62,6 +60,5 @@ export default function Ordenes() {
                 </div>
             </div>
         </Layout>
-    )
-
+    );
 }

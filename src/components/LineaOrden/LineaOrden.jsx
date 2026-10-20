@@ -1,7 +1,7 @@
 import { FiCheckCircle, FiClock, FiPackage } from 'react-icons/fi';
 import './LineaOrden.css';
 
-export function LineaOrden({ orden }) {
+export function LineaOrden({ orden, formatearCLP }) {
   const {
     idOrden = '',
     fecha = '',
