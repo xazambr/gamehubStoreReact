@@ -3,11 +3,10 @@ import { FiShoppingCart, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import { useCarrito } from '../../context/CartContext';
 import './TarjetaProducto.css';
 
-export default function TarjetaProducto({producto}) {
+export default function TarjetaProducto({producto, formatearPrecio}) {
     const { agregarProducto } = useCarrito();
 
     const sinStock = !producto.stock || producto.stock <= 0;
-    const formatearPrecio = (valor) => `$${valor.toLocaleString('es-CL')}`;
 
     return (
         <div className='card h-100 cardGamer'>

@@ -11,8 +11,6 @@ export function LineaOrden({ orden }) {
     metodoPago = ''
   } = orden || {};
 
-  const formatearCLP = (val) => `$${Number(val || 0).toLocaleString('es-CL')}`;
-
   return (
     <div className="cardOrden">
       {/* Encabezado de la Orden */}

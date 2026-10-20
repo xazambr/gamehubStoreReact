@@ -5,6 +5,8 @@ import { useCarrito } from '../../context/CartContext';
 import Layout from '../../components/Layout';
 import './DetalleProducto.css';
 
+import {formatearCLP} from "../../utils/utils"
+
 export function DetalleProducto() {
   // 1. Obtener el ID dinámico enviado por la URL
   const { id } = useParams();
@@ -28,7 +30,6 @@ export function DetalleProducto() {
   }
 
   const sinStock = !producto.stock || producto.stock <= 0;
-  const formatearPrecio = (valor) => `$${valor.toLocaleString('es-CL')}`;
 
   return (
     <Layout>
@@ -72,7 +73,7 @@ export function DetalleProducto() {
             </div>
 
             <div className="fs-2 fw-bold text-light mb-4">
-              {formatearPrecio(producto.precio)}
+              {formatearCLP(producto.precio)}
             </div>
 
             <button

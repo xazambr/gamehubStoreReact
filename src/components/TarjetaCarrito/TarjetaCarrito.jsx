@@ -1,10 +1,7 @@
 import { FiTrash2, FiPlus, FiMinus } from 'react-icons/fi';
 import "./TarjetaCarrito.css"
 
-export default function TarjetaCarrito({ item }, onActualizarCantidad, onEliminar) {
-
-    const formatearMoneda = (val) => `$${val.toLocaleString('es-CL')}`;
-
+export default function TarjetaCarrito({ item, onActualizarCantidad, onEliminar, formatearMoneda }) {
     const precioUnitario = Number(item?.precio) || 0;
     const cantidadItem = Number(item?.cantidad) || 1;
     const subtotalLinea = precioUnitario * cantidadItem;

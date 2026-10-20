@@ -1,7 +1,7 @@
-import React from 'react';
 import './ListaProductos.css';
 import TarjetaProducto from './TarjetaProducto.jsx';
-import { PRODUCTOS } from '../../data/productos.js'; // Ajustar la ruta si da error
+import { PRODUCTOS } from '../../data/productos.js';
+import { formatearCLP } from '../../utils/utils.js';
 
 export function ListaProductos({ productos = PRODUCTOS }) {
   // estado vacío (sin coincidencias o array vacío)
@@ -20,7 +20,7 @@ export function ListaProductos({ productos = PRODUCTOS }) {
     <div id="grid-catalogo" className="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
       {productos.map((producto) => (
         <div className="col" key={producto.id}>
-          <TarjetaProducto producto={producto} />
+          <TarjetaProducto producto={producto} formatearPrecio={formatearCLP}/>
         </div>
       ))}
     </div>

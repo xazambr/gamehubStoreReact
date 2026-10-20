@@ -7,8 +7,14 @@ import { useNavigate } from "react-router-dom";
 import TarjetaCarrito from "../../components/TarjetaCarrito/TarjetaCarrito.jsx"
 import './Carrito.css'
 
+import { formatearCLP } from "../../utils/utils.js";
+import {
+  calcularSubtotal,
+  aplicarCupon,
+  calcularTotal
+} from "../../utils/carrito";
+
 export default function Carrito() {
-  const formatearMoneda = (valor) => `$${valor.toLocaleString('es-CL')}`;
 
   const {
     carrito,
@@ -24,21 +30,14 @@ export default function Carrito() {
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
   const [mensajeCupon, setMensajeCupon] = useState({ tipo: '', texto: '' });
 
-  // Calculo de precio final
-  const subtotal = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-  const montoDescuento = (subtotal * descuentoPorcentaje) / 100;
-  const total = Math.max(0, subtotal - montoDescuento);
-
+  const subtotal = calcularSubtotal(carrito);
+  const { montoDescuento, total } = calcularTotal(subtotal, descuentoPorcentaje);
 
   const handleAplicarCupon = (e) => {
     e.preventDefault();
-    if (cuponInput.trim().toUpperCase() === 'GAMER10') {
-      setDescuentoPorcentaje(10);
-      setMensajeCupon({ tipo: 'exito', texto: '¡Cupón de 10% aplicado!' });
-    } else {
-      setDescuentoPorcentaje(0);
-      setMensajeCupon({ tipo: 'error', texto: 'Cupón inválido o vencido' });
-    }
+    const resultado = aplicarCupon(cuponInput);
+    setDescuentoPorcentaje(resultado.descuentoPorcentaje);
+    setMensajeCupon(resultado.mensaje);
   };
 
   {/* carrito vacio */ }
@@ -99,6 +98,7 @@ export default function Carrito() {
                   item={producto}
                   onActualizarCantidad={actualizarCantidad}
                   onEliminar={eliminarProducto}
+                  formatearMoneda={formatearCLP}
                 />
               ))}
             </div>
@@ -119,7 +119,7 @@ export default function Carrito() {
                       value={cuponInput}
                       onChange={(e) => setCuponInput(e.target.value)}
                     />
-                    <button type="submit" className="styles.btnAplicar">
+                    <button type="submit" className="btnAplicar">
                       Aplicar
                     </button>
                   </form>
@@ -132,13 +132,13 @@ export default function Carrito() {
 
                 <div className="d-flex justify-content-between mb-2">
                   <span className="text-secondary">Subtotal</span>
-                  <span className="fw-bold">{formatearMoneda(subtotal)}</span>
+                  <span className="fw-bold">{formatearCLP(subtotal)}</span>
                 </div>
 
                 {descuentoPorcentaje > 0 && (
                   <div className="d-flex justify-content-between mb-2 text-success">
                     <span>Descuento ({descuentoPorcentaje}%)</span>
-                    <span>-{formatearMoneda(montoDescuento)}</span>
+                    <span>-{formatearCLP(montoDescuento)}</span>
                   </div>
                 )}
 
@@ -151,7 +151,7 @@ export default function Carrito() {
 
                 <div className="d-flex justify-content-between align-items-center mb-4">
                   <span className="fw-bold fs-5">Total</span>
-                  <span className="montoTotal">{formatearMoneda(total)}</span>
+                  <span className="montoTotal">{formatearCLP(total)}</span>
                 </div>
 
                 <button
@@ -174,5 +174,5 @@ export default function Carrito() {
         </div>
       </div>
     </Layout>
-  );
+  )
 }
