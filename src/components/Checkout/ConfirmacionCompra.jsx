@@ -1,4 +1,3 @@
-
 export default function ConfirmacionCompra({ orden, formatoPrecio }) {
     return (
         <main className="checkout-confirmacion">

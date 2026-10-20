@@ -1,7 +1,7 @@
 import { FiCheckCircle, FiClock, FiPackage } from 'react-icons/fi';
 import './LineaOrden.css';
 
-export function LineaOrden({ orden }) {
+export function LineaOrden({ orden, formatearCLP }) {
   const {
     idOrden = '',
     fecha = '',
@@ -10,8 +10,6 @@ export function LineaOrden({ orden }) {
     total = 0,
     metodoPago = ''
   } = orden || {};
-
-  const formatearCLP = (val) => `$${Number(val || 0).toLocaleString('es-CL')}`;
 
   return (
     <div className="cardOrden">

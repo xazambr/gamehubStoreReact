@@ -7,6 +7,13 @@ import MetodoPago from "../../components/Checkout/MetodoPago";
 import ResumenOrden from "../../components/Checkout/ResumenOrden";
 import ConfirmacionCompra from "../../components/Checkout/ConfirmacionCompra";
 
+import { formatearCLP } from "../../utils/utils";
+import { 
+  validarFormulario, 
+  crearEstructuraOrden, 
+  guardarOrdenEnLocalStorage 
+} from "../../utils/validaciones";
+
 import "./checkout.css";
 
 const formularioInicial = {
@@ -32,13 +39,6 @@ export default function Checkout() {
     0
   );
 
-  const formatoPrecio = (valor) =>
-    new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-      maximumFractionDigits: 0,
-    }).format(valor);
-
   const manejarCambio = (e) => {
     const { name, value } = e.target;
 
@@ -53,50 +53,6 @@ export default function Checkout() {
     }));
   };
 
-  const validarFormulario = () => {
-    const nuevosErrores = {};
-
-    if (!formulario.nombre.trim()) {
-      nuevosErrores.nombre = "Ingresa tu nombre completo.";
-    }
-
-    if (!formulario.correo.trim()) {
-      nuevosErrores.correo = "Ingresa tu correo.";
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulario.correo.trim())
-    ) {
-      nuevosErrores.correo = "Ingresa un correo válido.";
-    }
-
-    const telefono = formulario.telefono.replace(/[\s()-]/g, "");
-
-    if (!telefono) {
-      nuevosErrores.telefono = "Ingresa tu teléfono.";
-    } else if (!/^(?:\+?56)?9\d{8}$/.test(telefono)) {
-      nuevosErrores.telefono = "Ingresa un celular chileno válido.";
-    }
-
-    if (!formulario.region) {
-      nuevosErrores.region = "Selecciona una región.";
-    }
-
-    if (!formulario.comuna.trim()) {
-      nuevosErrores.comuna = "Ingresa tu comuna.";
-    }
-
-    if (!formulario.direccion.trim()) {
-      nuevosErrores.direccion = "Ingresa tu dirección.";
-    }
-
-    if (!formulario.metodoPago) {
-      nuevosErrores.metodoPago = "Selecciona un método de pago.";
-    }
-
-    setErrores(nuevosErrores);
-
-    return Object.keys(nuevosErrores).length === 0;
-  };
-
   const manejarCompra = (e) => {
     e.preventDefault();
 
@@ -106,24 +62,15 @@ export default function Checkout() {
       });
       return;
     }
+    const { esValido, errores: nuevosErrores } = validarFormulario(formulario);
 
-    if (!validarFormulario()) return;
-
-    const nuevaOrden = {
-      numero: `GH-${Date.now().toString().slice(-8)}`,
-      fecha: new Date().toLocaleDateString("es-CL"),
-      cliente: { ...formulario },
-      productos: carrito.map((producto) => ({ ...producto })),
-      total,
-      estadoPago: "Aprobado (simulado)",
-    };
-
-    try {
-      const ordenesGuardadas = JSON.parse(localStorage.getItem('gamehub_ordenes')) || [];
-      localStorage.setItem('gamehub_ordenes', JSON.stringify([nuevaOrden, ...ordenesGuardadas]));
-    } catch (err) {
-      console.error("Error al guardar la orden en localStorage:", err);
+    if (!esValido) {
+      setErrores(nuevosErrores);
+      return;
     }
+
+    const nuevaOrden = crearEstructuraOrden(formulario, carrito, total);
+    guardarOrdenEnLocalStorage(nuevaOrden);
 
     setOrden(nuevaOrden);
     vaciarCarrito();
@@ -133,7 +80,7 @@ export default function Checkout() {
     return (
       <ConfirmacionCompra
         orden={orden}
-        formatoPrecio={formatoPrecio}
+        formatoPrecio={formatearCLP}
       />
     );
   }
@@ -151,7 +98,6 @@ export default function Checkout() {
           </section>
         </main>
       </Layout>
-
     );
   }
 
@@ -189,7 +135,7 @@ export default function Checkout() {
             <ResumenOrden
               carrito={carrito}
               total={total}
-              formatoPrecio={formatoPrecio}
+              formatoPrecio={formatearCLP}
             />
           </div>
         </form>

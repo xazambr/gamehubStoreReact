@@ -2,9 +2,28 @@ import { useState, useMemo } from 'react';
 import Layout from '../components/Layout';
 import { FiltroCatalogo } from '../components/FiltroCatalogo/FiltroCatalogo';
 import { ListaProductos } from '../components/Productos/ListaProductos';
+
 import { PRODUCTOS } from '../data/productos';
 
+import { formatearCLP } from '../utils/utils';
+import {
+  obtenerCategoriasUnicas,
+  obtenerMarcasUnicas,
+  validarRangoPrecios,
+  filtrarYOrdenarProductos
+} from '../utils/catalogo';
+
+const filtrosIniciales = {
+  categoria: '',
+  marca: '',
+  precioMin: '',
+  precioMax: '',
+  soloStock: false
+};
+
+
 export default function Catalogo() {
+
   const [filtros, setFiltros] = useState({
     categoria: '',
     marca: '',
@@ -15,49 +34,23 @@ export default function Catalogo() {
 
   const [orden, setOrden] = useState('nombre-asc');
 
-  const categorias = useMemo(() => [...new Set(PRODUCTOS.map(p => p.categoria).filter(Boolean))], []);
-  const marcas = useMemo(() => [...new Set(PRODUCTOS.map(p => p.marca).filter(Boolean))], []);
+  const categorias = useMemo(() => obtenerCategoriasUnicas(PRODUCTOS), []);
+  const marcas = useMemo(() => obtenerMarcasUnicas(PRODUCTOS), []);
 
-  const minNum = parseFloat(filtros.precioMin);
-  const maxNum = parseFloat(filtros.precioMax);
-  const errorRango = !isNaN(minNum) && !isNaN(maxNum) && minNum > maxNum;
+  const errorRango = validarRangoPrecios(filtros.precioMin, filtros.precioMax);
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros(prev => ({ ...prev, [campo]: valor }));
   };
 
   const handleLimpiarFiltros = () => {
-    setFiltros({
-      categoria: '',
-      marca: '',
-      precioMin: '',
-      precioMax: '',
-      soloStock: false
-    });
+    setFiltros(filtrosIniciales);
     setOrden('nombre-asc');
   };
 
   const productosFiltrados = useMemo(() => {
-    if (errorRango) return [];
-
-    let res = [...PRODUCTOS];
-    const precioFinal = (p) => p.descuento > 0 ? p.precio * (1 - p.descuento / 100) : p.precio;
-
-    if (filtros.categoria) res = res.filter(p => p.categoria === filtros.categoria);
-    if (filtros.marca) res = res.filter(p => p.marca === filtros.marca);
-    if (filtros.soloStock) res = res.filter(p => p.stock > 0);
-    if (!isNaN(minNum)) res = res.filter(p => precioFinal(p) >= minNum);
-    if (!isNaN(maxNum)) res = res.filter(p => precioFinal(p) <= maxNum);
-
-    switch (orden) {
-      case 'precio-asc':  res.sort((a,b) => precioFinal(a) - precioFinal(b)); break;
-      case 'precio-desc': res.sort((a,b) => precioFinal(b) - precioFinal(a)); break;
-      case 'nombre-desc': res.sort((a,b) => b.nombre.localeCompare(a.nombre)); break;
-      default:            res.sort((a,b) => a.nombre.localeCompare(b.nombre));
-    }
-
-    return res;
-  }, [filtros, orden, errorRango, minNum, maxNum]);
+    return filtrarYOrdenarProductos(PRODUCTOS, filtros, orden);
+  }, [filtros, orden]);
 
   return (
     <Layout>
@@ -67,7 +60,7 @@ export default function Catalogo() {
 
           <div className="row g-4 align-items-start">
             <div className="col-12 col-lg-3">
-              <FiltroCatalogo 
+              <FiltroCatalogo
                 filtros={filtros}
                 onChangeFiltro={handleFiltroChange}
                 onLimpiarFiltros={handleLimpiarFiltros}
@@ -89,9 +82,9 @@ export default function Catalogo() {
                   <label htmlFor="orden" className="form-label mb-0" style={{ fontSize: '.8rem', whiteSpace: 'nowrap' }}>
                     Ordenar:
                   </label>
-                  <select 
-                    id="orden" 
-                    className="form-select form-select-sm" 
+                  <select
+                    id="orden"
+                    className="form-select form-select-sm"
                     style={{ width: 'auto' }}
                     value={orden}
                     onChange={(e) => setOrden(e.target.value)}
@@ -104,7 +97,7 @@ export default function Catalogo() {
                 </div>
               </div>
 
-              <ListaProductos productos={productosFiltrados} />
+              <ListaProductos productos={productosFiltrados} formatearPrecio={formatearCLP} />
             </div>
           </div>
         </div>
