@@ -1,7 +1,7 @@
 import React from 'react';
 import './ListaProductos.css';
-import { TarjetaProducto } from './TarjetaProducto';
-import { PRODUCTOS } from '../data/productos'; // Ajustar la ruta si da error
+import TarjetaProducto from './TarjetaProducto.jsx';
+import { PRODUCTOS } from '../../data/productos.js'; // Ajustar la ruta si da error
 
 export function ListaProductos({ productos = PRODUCTOS }) {
   // estado vacío (sin coincidencias o array vacío)
