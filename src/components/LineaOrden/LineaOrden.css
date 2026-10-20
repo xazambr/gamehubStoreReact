@@ -1,0 +1,72 @@
+.cardOrden {
+  background-color: #1E1730;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cardOrden:hover {
+  border-color: rgba(0, 210, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.headerOrden {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.numOrden {
+  color: #00D2FF;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.badgeCompletado {
+  background-color: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+  border: 1px solid #28a745;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badgeProcesando {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  border: 1px solid #ffc107;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.itemProducto {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.itemProducto:last-child {
+  border-bottom: none;
+}
+
+.imgMini {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+  background-color: #120E1A;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.totalOrden {
+  color: #00D2FF;
+  font-size: 1.2rem;
+  font-weight: 800;
+}

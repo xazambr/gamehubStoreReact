@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Layout from '../components/Layout';
 import { FiltroCatalogo } from '../components/FiltroCatalogo/FiltroCatalogo';
-import { ListaProductos } from '../components/ListaProductos/ListaProductos';
+import { ListaProductos } from '../components/Productos/ListaProductos';
 import { PRODUCTOS } from '../data/productos';
 
 export default function Catalogo() {

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { FiShoppingCart, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-import { useCarrito } from '../../context/CarritoContext';
+import { useCarrito } from '../../context/CartContext';
 import './TarjetaProducto.css';
 
-export default function TarjetaProducto(producto) {
+export default function TarjetaProducto({producto}) {
     const { agregarProducto } = useCarrito();
 
     const sinStock = !producto.stock || producto.stock <= 0;
