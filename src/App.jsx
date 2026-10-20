@@ -3,7 +3,7 @@ import { CartProvider } from './context/CartContext.jsx';
 import Home from './views/Home.jsx'
 import Carrito from './views/Carrito/Carrito.jsx'
 import Catalogo from './views/Catalogo.jsx'
-import Checkout from './views/Checkout.jsx'
+import Checkout from './views/Checkout/Checkout.jsx'
 import Ordenes from './views/Ordenes.jsx'
 import { DetalleProducto } from './views/DetalleProducto/DetalleProducto.jsx';
 import './App.css'
