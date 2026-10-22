@@ -33,3 +33,13 @@ a {
   color: var(--color-acento);
   text-decoration: none;
 }
+
+
+.tarjeta-producto-imagen,
+.panelResumen img,
+.seccionCarrito img {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radio-borde);
+  cursor: pointer;
+}
