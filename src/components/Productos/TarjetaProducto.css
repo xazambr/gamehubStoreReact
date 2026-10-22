@@ -128,3 +128,26 @@
   cursor: not-allowed;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* 1. Contenedor de la imagen */
+.tarjeta-producto-imagen-container {
+  width: 100%;
+  height: 200px; /* Define una altura fija estándar para todas las tarjetas */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Corta cualquier exceso visual */
+  background-color: #0b0c10; /* Fondo oscuro opcional acorde al tema gamer */
+  border-radius: 8px 8px 0 0;
+}
+
+.tarjeta-producto-imagen-container:hover {
+  width: 100%;
+  height: 200px; /* Define una altura fija estándar para todas las tarjetas */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Corta cualquier exceso visual */
+  background-color: #0b0c10; /* Fondo oscuro opcional acorde al tema gamer */
+  border-radius: 8px 8px 0 0;
+}
