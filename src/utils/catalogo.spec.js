@@ -4,7 +4,7 @@ import {
   validarRangoPrecios,
   obtenerPrecioEfectivo,
   filtrarYOrdenarProductos
-} from './utils/catalogo.js';
+} from './catalogo.js';
 
 describe('Pruebas unitarias exhaustivas para catalogo.js', () => {
 
