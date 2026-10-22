@@ -1,9 +1,8 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FiShoppingCart, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { PRODUCTOS } from '../../data/productos'; // Importas tu lista de productos
+import { PRODUCTOS } from '../../data/productos';
 import { useCarrito } from '../../context/CartContext';
 import Layout from '../../components/Layout';
-import './DetalleProducto.css';
 
 import {formatearCLP} from "../../utils/utils"
 
