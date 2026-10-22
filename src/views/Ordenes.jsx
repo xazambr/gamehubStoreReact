@@ -17,14 +17,14 @@ export default function Ordenes() {
 
     return (
         <Layout>
-            <div className="py-5 text-light" style={{ backgroundColor: '#120E1A', minHeight: 'calc(100vh - 80px)' }}>
-                <div className="container" style={{ maxWidth: '800px' }}>
+            <div className="py-5 text-light">
+                <div className="container">
 
                     <Link to="/catalogo" className="text-info text-decoration-none small d-inline-flex align-items-center gap-1 mb-3">
                         <FiArrowLeft /> Volver al catálogo
                     </Link>
 
-                    <p className="text-info fw-bold small text-uppercase mb-1" style={{ letterSpacing: '2px' }}>
+                    <p className="text-info fw-bold small text-uppercase mb-1" >
                         HISTORIAL DE COMPRAS
                     </p>
                     <h1 className="fw-extrabold mb-4 fs-2">MIS ÓRDENES</h1>
