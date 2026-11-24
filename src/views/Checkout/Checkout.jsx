@@ -14,7 +14,7 @@ import {
   guardarOrdenEnLocalStorage 
 } from "../../utils/validaciones";
 
-import "./checkout.css";
+import "./Checkout.css";
 
 const formularioInicial = {
   nombre: "",

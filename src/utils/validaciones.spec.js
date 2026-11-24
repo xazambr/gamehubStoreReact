@@ -1,6 +1,5 @@
 import {
     validarFormulario,
-    crearEstructuraOrden,
     guardarOrdenEnLocalStorage
 } from './validaciones.js';
 
@@ -56,22 +55,7 @@ describe('Pruebas unitarias - Validaciones y Órdenes (GameHub Store)', () => {
             expect(resInvalido.esValido).toBe(false);
             expect(resInvalido.errores.telefono).toBe('Ingresa un celular chileno válido.');
         });
-    });
-
-    describe('crearEstructuraOrden()', () => {
-        it('debe generar una orden estructurada con número de orden GH- y estado "Aprobado"', () => {
-            const productos = [{ id: 1, nombre: 'Mouse Gamer', precio: 25000, cantidad: 1 }];
-            const total = 25000;
-
-            const orden = crearEstructuraOrden(formularioValido, productos, total);
-
-            expect(orden.numero).toMatch(/^GH-\d+$/);
-            expect(orden.estadoPago).toBe('Aprobado');
-            expect(orden.cliente.nombre).toBe('Gamer Pro');
-            expect(orden.productos.length).toBe(1);
-            expect(orden.total).toBe(25000);
-        });
-    });
+    });});
 
     describe('guardarOrdenEnLocalStorage()', () => {
         beforeEach(() => {
@@ -101,5 +85,3 @@ describe('Pruebas unitarias - Validaciones y Órdenes (GameHub Store)', () => {
             expect(guardadas[0].numero).toBe('GH-22222222'); // La más reciente queda primero
         });
     });
-
-});

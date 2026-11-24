@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext.jsx';
-import Home from './views/Home.jsx'
+import Home from './views/Home/Home.jsx'
 import Carrito from './views/Carrito/Carrito.jsx'
 import Catalogo from './views/Catalogo.jsx'
 import Checkout from './views/Checkout/Checkout.jsx'

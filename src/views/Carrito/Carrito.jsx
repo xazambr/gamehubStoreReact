@@ -31,7 +31,8 @@ export default function Carrito() {
   const [mensajeCupon, setMensajeCupon] = useState({ tipo: '', texto: '' });
 
   const subtotal = calcularSubtotal(carrito);
-  const { montoDescuento, total } = calcularTotal(subtotal, descuentoPorcentaje);
+  const montoDescuento = Math.round((subtotal * descuentoPorcentaje) / 100);
+  const total = calcularTotal(subtotal, montoDescuento);
 
   const handleAplicarCupon = (e) => {
     e.preventDefault();

@@ -8,7 +8,7 @@ import {
 } from 'react-icons/bs';
 
 import  TarjetaCategorias  from './TarjetaCategoria.jsx';
-import './TarjetaCategorias.css';
+import './PanelCategorias.css';
 
 const CATEGORIAS = [
   { id: 1, nombre: 'Notebooks', icono: BsLaptop, slug: 'notebooks' },
@@ -21,7 +21,7 @@ const CATEGORIAS = [
 
 export default function SeccionCategorias() {
   return (
-    <section className="panel-categorias">
+    <section className="categorias">
       <div className="container">
         <p className="subtitulo">ENCUENTRA TU PRÓXIMO UPGRADE</p>
         <h2 className="titulo">Explora por categoría</h2>

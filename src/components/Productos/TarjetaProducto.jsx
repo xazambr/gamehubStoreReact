@@ -18,7 +18,7 @@ export default function TarjetaProducto({producto, formatearPrecio}) {
                     <img
                         src={producto.imagen}
                         alt={producto.nombre}
-                        className='imagenProducto'
+                        className='imagenProducto tarjeta-producto-imagen-container'
                         onError={(e) => {
                             e.target.src = "https://via.placeholder.com/300x200/1E1730/00D2FF?text=GameHub";
                         }}
