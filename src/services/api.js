@@ -1,28 +1,28 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { API_URL } from '../../config'
+import { leerSesion, borrarSesion } from './sesion';
 
-export async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem('token');
-
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+export async function solicitar(ruta, opciones = {}) {
+  const token = leerSesion()?.token;
+  const headers = { 'Content-Type': 'application/json' };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
+  const res = await fetch(`${API_URL}${ruta}`, {
+    ...opciones,
+    headers: { ...headers, ...opciones.headers },
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+  if (res.status === 401 && token) {
+    borrarSesion();
+    window.dispatchEvent(new Event('sesion-expirada'));
   }
 
-  if (response.status === 204) return null;
+  if (!res.ok) {
+    const cuerpo = await res.json().catch(() => ({}));
+    throw new Error(cuerpo.mensaje || cuerpo.message || `Error ${res.status}`);
+  }
 
-  return response.json();
+  return res.status === 204 ? null : res.json();
 }
