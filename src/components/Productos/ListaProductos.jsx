@@ -1,6 +1,5 @@
 import './ListaProductos.css';
 import TarjetaProducto from './TarjetaProducto.jsx';
-import { PRODUCTOS } from '../../data/productos.js';
 import { formatearCLP } from '../../utils/utils.js';
 
 export function ListaProductos({ productos = PRODUCTOS }) {
