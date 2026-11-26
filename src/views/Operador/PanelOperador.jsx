@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { operacionService } from '../../services/operacionService';
+import { productosService } from '../../services/productosService';
+import { inventarioService } from '../../services/inventarioService';
 import { formatearCLP } from '../../utils/utils';
 
 export default function PanelOperador() {
@@ -8,6 +10,7 @@ export default function PanelOperador() {
   const [ordenes, setOrdenes] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [inventario, setInventario] = useState([]);
+  const [productos, setProductos] = useState([]);
   const [envios, setEnvios] = useState([]);
 
   const [trackingInput, setTrackingInput] = useState({});
@@ -19,17 +22,35 @@ export default function PanelOperador() {
   async function cargarOperacion() {
     setCargando(true);
     setError(null);
-    const [resOrd, resPag, resInv, resEnv] = await Promise.allSettled([
+
+    const [resOrd, resPag, resInv, resEnv, resProd] = await Promise.allSettled([
       operacionService.listarOrdenes(),
       operacionService.listarPagos(),
-      operacionService.listarInventario(),
+      inventarioService.listar(),
       operacionService.listarEnvios(),
+      productosService.listar(),
     ]);
 
-    if (resOrd.status === 'fulfilled') setOrdenes(Array.isArray(resOrd.value) ? resOrd.value : []);
-    if (resPag.status === 'fulfilled') setPagos(Array.isArray(resPag.value) ? resPag.value : []);
-    if (resInv.status === 'fulfilled') setInventario(Array.isArray(resInv.value) ? resInv.value : []);
-    if (resEnv.status === 'fulfilled') setEnvios(Array.isArray(resEnv.value) ? resEnv.value : []);
+    if (resOrd.status === 'fulfilled') {
+      setOrdenes(Array.isArray(resOrd.value) ? resOrd.value : []);
+    }
+    if (resPag.status === 'fulfilled') {
+      setPagos(Array.isArray(resPag.value) ? resPag.value : []);
+    }
+    if (resInv.status === 'fulfilled') {
+      setInventario(Array.isArray(resInv.value) ? resInv.value : []);
+    } else {
+      setError(
+        `Error cargando inventario: ${resInv.reason?.message || 'Revisa puerto/seguridad de msvc-inventory'}`
+      );
+    }
+    if (resEnv.status === 'fulfilled') {
+      setEnvios(Array.isArray(resEnv.value) ? resEnv.value : []);
+    }
+    if (resProd.status === 'fulfilled') {
+      setProductos(Array.isArray(resProd.value) ? resProd.value : []);
+    }
+
     setCargando(false);
   }
 
@@ -44,7 +65,7 @@ export default function PanelOperador() {
     try {
       await operacionService.actualizarPago(pago.id, { ...pago, estado: nuevoEstado });
       setMensaje(`Pago #${pago.id} actualizado a ${nuevoEstado}.`);
-      cargarOperacion();
+      await cargarOperacion();
     } catch (err) {
       setError(err.message || 'Error al actualizar el estado del pago.');
     }
@@ -56,7 +77,9 @@ export default function PanelOperador() {
     setMensaje(null);
 
     const pagoAprobado = pagos.find(
-      (p) => (p.ordenId ?? p.orden?.id) === orden.id && (p.estado ?? '').toUpperCase() === 'APROBADO'
+      (p) =>
+        (p.ordenId ?? p.orden?.id) === orden.id &&
+        (p.estado ?? '').toUpperCase() === 'APROBADO'
     );
 
     if (!pagoAprobado && (orden.estado ?? '').toUpperCase() !== 'PAGADA') {
@@ -77,33 +100,49 @@ export default function PanelOperador() {
         estado: 'EN_CAMINO',
       });
       setMensaje(`Despacho generado para la orden #${orden.id} (Tracking: ${tracking}).`);
-      cargarOperacion();
+      await cargarOperacion();
     } catch (err) {
       setError(err.message || 'No se pudo generar el despacho.');
     }
   }
 
-  // Ajustar stock (Regla: el stock no puede quedar negativo)
-  async function guardarNuevoStock(item) {
+  // Crear (POST) o actualizar (PUT) stock disponible respetando validaciones de Inventario.java
+  async function guardarNuevoStock(producto, invExistente) {
     setError(null);
     setMensaje(null);
 
-    const nuevoValor = Number(stockInput[item.id]);
+    const valorCrudo = stockInput[producto.id];
+    if (valorCrudo === undefined || valorCrudo === '') {
+      setError('Ingresa una cantidad válida antes de guardar.');
+      return;
+    }
+
+    const nuevoValor = Number(valorCrudo);
     if (Number.isNaN(nuevoValor) || nuevoValor < 0) {
-      setError('El stock no puede ser negativo.');
+      setError('El stock disponible no puede ser negativo.');
       return;
     }
 
     try {
-      await operacionService.ajustarStock(item.id, {
-        ...item,
-        cantidad: nuevoValor,
-        motivo: 'Ajuste manual desde Panel Operador',
-      });
-      setMensaje(`Stock actualizado a ${nuevoValor} unidades.`);
-      cargarOperacion();
+      if (invExistente?.id) {
+        await inventarioService.actualizar(invExistente.id, invExistente, {
+          stockDisponible: nuevoValor,
+        });
+      } else {
+        await inventarioService.crear({
+          productoId: producto.id,
+          stockDisponible: nuevoValor,
+          stockReservado: 0,
+          stockMinimo: 5,
+          ubicacion: 'Bodega Central',
+        });
+      }
+
+      setStockInput((prev) => ({ ...prev, [producto.id]: '' }));
+      setMensaje(`Stock de "${producto.nombre}" actualizado a ${nuevoValor} unidades.`);
+      await cargarOperacion();
     } catch (err) {
-      setError(err.message || 'Error al ajustar el inventario.');
+      setError(err.message || 'Error al guardar el inventario.');
     }
   }
 
@@ -159,43 +198,59 @@ export default function PanelOperador() {
                     </tr>
                   </thead>
                   <tbody>
-                    {ordenes.map((o) => {
-                      const envioExistente = envios.find((e) => (e.ordenId ?? e.orden?.id) === o.id);
-                      return (
-                        <tr key={o.id}>
-                          <td className="fw-bold">#{o.id}</td>
-                          <td>{formatearCLP(o.total ?? 0)}</td>
-                          <td>
-                            <span className="badge bg-info text-dark">{o.estado || 'PENDIENTE'}</span>
-                          </td>
-                          <td>
-                            {envioExistente ? (
-                              <span className="text-success">
-                                Despachado ({envioExistente.numeroSeguimiento} - {envioExistente.estado})
+                    {ordenes.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="text-center text-secondary py-3">
+                          No hay órdenes registradas.
+                        </td>
+                      </tr>
+                    ) : (
+                      ordenes.map((o) => {
+                        const envioExistente = envios.find(
+                          (e) => (e.ordenId ?? e.orden?.id) === o.id
+                        );
+                        return (
+                          <tr key={o.id}>
+                            <td className="fw-bold">#{o.id}</td>
+                            <td>{formatearCLP(o.total ?? 0)}</td>
+                            <td>
+                              <span className="badge bg-info text-dark">
+                                {o.estado || 'PENDIENTE'}
                               </span>
-                            ) : (
-                              <div className="d-flex gap-2" style={{ maxWidth: '340px' }}>
-                                <input
-                                  type="text"
-                                  className="form-control form-control-sm"
-                                  placeholder="N° Tracking (ej: GH-1029)"
-                                  value={trackingInput[o.id] || ''}
-                                  onChange={(e) =>
-                                    setTrackingInput({ ...trackingInput, [o.id]: e.target.value })
-                                  }
-                                />
-                                <button
-                                  className="btn btn-primary btn-sm text-nowrap"
-                                  onClick={() => despacharOrden(o)}
-                                >
-                                  Despachar
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                            </td>
+                            <td>
+                              {envioExistente ? (
+                                <span className="text-success">
+                                  Despachado ({envioExistente.numeroSeguimiento} -{' '}
+                                  {envioExistente.estado})
+                                </span>
+                              ) : (
+                                <div className="d-flex gap-2" style={{ maxWidth: '340px' }}>
+                                  <input
+                                    type="text"
+                                    className="form-control form-control-sm"
+                                    placeholder="N° Tracking (ej: GH-1029)"
+                                    value={trackingInput[o.id] || ''}
+                                    onChange={(e) =>
+                                      setTrackingInput({
+                                        ...trackingInput,
+                                        [o.id]: e.target.value,
+                                      })
+                                    }
+                                  />
+                                  <button
+                                    className="btn btn-primary btn-sm text-nowrap"
+                                    onClick={() => despacharOrden(o)}
+                                  >
+                                    Despachar
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -215,87 +270,141 @@ export default function PanelOperador() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pagos.map((p) => (
-                      <tr key={p.id}>
-                        <td>#{p.id}</td>
-                        <td>#{p.ordenId ?? p.orden?.id}</td>
-                        <td>{formatearCLP(p.monto ?? 0)}</td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              p.estado === 'APROBADO'
-                                ? 'bg-success'
-                                : p.estado === 'ANULADO'
-                                ? 'bg-danger'
-                                : 'bg-warning text-dark'
-                            }`}
-                          >
-                            {p.estado}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => cambiarEstadoPago(p, 'APROBADO')}
-                            >
-                              Aprobar
-                            </button>
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              onClick={() => cambiarEstadoPago(p, 'ANULADO')}
-                            >
-                              Anular
-                            </button>
-                          </div>
+                    {pagos.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="text-center text-secondary py-3">
+                          No hay pagos registrados.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      pagos.map((p) => (
+                        <tr key={p.id}>
+                          <td>#{p.id}</td>
+                          <td>#{p.ordenId ?? p.orden?.id}</td>
+                          <td>{formatearCLP(p.monto ?? 0)}</td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                p.estado === 'APROBADO'
+                                  ? 'bg-success'
+                                  : p.estado === 'ANULADO'
+                                  ? 'bg-danger'
+                                  : 'bg-warning text-dark'
+                              }`}
+                            >
+                              {p.estado}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-success btn-sm"
+                                onClick={() => cambiarEstadoPago(p, 'APROBADO')}
+                              >
+                                Aprobar
+                              </button>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => cambiarEstadoPago(p, 'ANULADO')}
+                              >
+                                Anular
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
             )}
 
-            {/* AJUSTE DE STOCK */}
+            {/* INVENTARIO / STOCK */}
             {tab === 'inventario' && (
               <div className="table-responsive">
                 <table className="table table-dark table-striped align-middle">
                   <thead>
                     <tr>
-                      <th>ID Inv.</th>
-                      <th>Producto ID</th>
-                      <th>Stock Actual</th>
-                      <th>Nuevo Stock</th>
+                      <th>Inv. #</th>
+                      <th>Producto</th>
+                      <th>Ubicación</th>
+                      <th>Disponible</th>
+                      <th>Reservado</th>
+                      <th>Mínimo</th>
+                      <th>Nuevo Disponible</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {inventario.map((inv) => (
-                      <tr key={inv.id}>
-                        <td>{inv.id}</td>
-                        <td>Producto #{inv.productoId ?? inv.producto?.id}</td>
-                        <td className="fw-bold">{inv.cantidad ?? inv.stock ?? 0} un.</td>
-                        <td>
-                          <div className="d-flex gap-2" style={{ maxWidth: '220px' }}>
-                            <input
-                              type="number"
-                              min="0"
-                              className="form-control form-control-sm"
-                              placeholder="Cantidad"
-                              value={stockInput[inv.id] ?? ''}
-                              onChange={(e) =>
-                                setStockInput({ ...stockInput, [inv.id]: e.target.value })
-                              }
-                            />
-                            <button
-                              className="btn btn-warning btn-sm"
-                              onClick={() => guardarNuevoStock(inv)}
-                            >
-                              Ajustar
-                            </button>
-                          </div>
+                    {productos.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center text-secondary py-3">
+                          No hay productos activos en el catálogo.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      productos.map((prod) => {
+                        const inv = inventario.find(
+                          (item) => Number(item.productoId) === Number(prod.id)
+                        );
+                        const disponible = inv ? (inv.stockDisponible ?? 0) : 0;
+                        const bajoMinimo = inv
+                          ? disponible <= (inv.stockMinimo ?? 0)
+                          : true;
+
+                        return (
+                          <tr key={prod.id}>
+                            <td>
+                              {inv ? (
+                                `#${inv.id}`
+                              ) : (
+                                <span className="badge bg-secondary">Sin registro</span>
+                              )}
+                            </td>
+                            <td>
+                              <div className="fw-bold">{prod.nombre}</div>
+                              <small className="text-secondary">
+                                ID #{prod.id} · {prod.marca} {prod.modelo}
+                              </small>
+                            </td>
+                            <td>{inv?.ubicacion || 'Bodega Central'}</td>
+                            <td>
+                              <span
+                                className={`fw-bold ${
+                                  bajoMinimo ? 'text-danger' : 'text-success'
+                                }`}
+                              >
+                                {disponible} un.
+                              </span>
+                            </td>
+                            <td>{inv?.stockReservado ?? 0} un.</td>
+                            <td>{inv?.stockMinimo ?? 5} un.</td>
+                            <td>
+                              <div className="d-flex gap-2" style={{ maxWidth: '230px' }}>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  className="form-control form-control-sm"
+                                  placeholder={String(disponible)}
+                                  value={stockInput[prod.id] ?? ''}
+                                  onChange={(e) =>
+                                    setStockInput({
+                                      ...stockInput,
+                                      [prod.id]: e.target.value,
+                                    })
+                                  }
+                                />
+                                <button
+                                  className="btn btn-warning btn-sm"
+                                  onClick={() => guardarNuevoStock(prod, inv)}
+                                >
+                                  {inv ? 'Ajustar' : 'Crear'}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
