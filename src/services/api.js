@@ -14,10 +14,10 @@ export async function solicitar(ruta, opciones = {}) {
     headers: { ...headers, ...opciones.headers },
   });
 
-  if (res.status === 401 && token) {
-    borrarSesion();
-    window.dispatchEvent(new Event('sesion-expirada'));
-  }
+if (res.status === 401 && token && (ruta.startsWith('/auth') || ruta.startsWith('/usuarios'))) {
+  borrarSesion();
+  window.dispatchEvent(new Event('sesion-expirada'));
+}
 
   if (res.status === 403) {
   throw new Error('Error 403: No tienes permisos para realizar esta acción.');
