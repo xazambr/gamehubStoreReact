@@ -9,6 +9,8 @@ import Catalogo from './views/Catalogo.jsx';
 import Checkout from './views/Checkout/Checkout.jsx';
 import Ordenes from './views/Ordenes.jsx';
 import Login from './views/Login/Login.jsx';
+import PanelOperador from './views/Operador/PanelOperador.jsx'
+import PanelAdmin from './views/Admin/PanelAdmin.jsx'
 import { DetalleProducto } from './views/DetalleProducto/DetalleProducto.jsx';
 import './App.css';
 
@@ -48,8 +50,7 @@ function App() {
               path="/operador"
               element={
                 <RutaProtegida rolesPermitidos={['ROLE_OPERADOR', 'ROLE_ADMIN']}>
-                  {/* Aquí irá el componente PanelOperador */}
-                  <div className="container py-5 text-light"><h2>Panel del Operador</h2></div>
+                  <PanelOperador />
                 </RutaProtegida>
               }
             />
@@ -57,8 +58,7 @@ function App() {
               path="/admin"
               element={
                 <RutaProtegida rolesPermitidos={['ROLE_ADMIN']}>
-                  {/* Aquí irá el componente PanelAdmin */}
-                  <div className="container py-5 text-light"><h2>Panel de Administración</h2></div>
+                  <PanelAdmin />
                 </RutaProtegida>
               }
             />
