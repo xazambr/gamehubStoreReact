@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { useAuth } from '../auth/useAuth';
+=======
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
 import {
   agregarAlCarrito as agregarHelper,
   actualizarCantidadLinea,
@@ -11,6 +14,7 @@ import {
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
+<<<<<<< HEAD
   const { usuario, autenticado } = useAuth();
 
   // Clave dinámica: 'gamehub_carrito_invitado' sin sesión, o 'gamehub_carrito_<usuario>' al iniciar sesión
@@ -72,11 +76,41 @@ export function CartProvider({ children }) {
 
   const eliminarProducto = (id) => {
     actualizarYGuardar((prev) => eliminarHelper(prev, id));
+=======
+  const [carrito, setCarrito] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gamehub_carrito');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error al leer el carrito de localStorage", error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gamehub_carrito', JSON.stringify(carrito));
+  }, [carrito]);
+
+  const agregarProducto = (producto, cantidad = 1) => {
+    setCarrito((prev) => agregarHelper(prev, producto, cantidad));
+  };
+
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    setCarrito((prev) => actualizarCantidadLinea(prev, id, nuevaCantidad));
+  };
+
+  const eliminarProducto = (id) => {
+    setCarrito((prev) => eliminarHelper(prev, id));
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
   };
 
   const vaciarCarrito = () => {
     setCarrito([]);
+<<<<<<< HEAD
     localStorage.removeItem(claveStorage);
+=======
+    localStorage.removeItem('gamehub_carrito');
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
   };
 
   const subtotal = calcularSubtotal(carrito);

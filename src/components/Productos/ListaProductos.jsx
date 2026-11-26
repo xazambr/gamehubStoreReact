@@ -1,5 +1,9 @@
 import './ListaProductos.css';
 import TarjetaProducto from './TarjetaProducto.jsx';
+<<<<<<< HEAD
+=======
+import { PRODUCTOS } from '../../data/productos.js';
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
 import { formatearCLP } from '../../utils/utils.js';
 
 export function ListaProductos({ productos = PRODUCTOS }) {

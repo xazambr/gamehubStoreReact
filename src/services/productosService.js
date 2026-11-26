@@ -73,6 +73,7 @@ export const productosService = {
     }
 
     const mapaStock = {};
+<<<<<<< HEAD
 if (respInventario.status === 'fulfilled') {
   extraerLista(respInventario.value).forEach((inv) => {
     if (inv.productoId != null) {
@@ -80,6 +81,16 @@ if (respInventario.status === 'fulfilled') {
     }
   });
 }
+=======
+    if (respInventario.status === 'fulfilled') {
+      extraerLista(respInventario.value).forEach((inv) => {
+        const prodId = inv.productoId ?? inv.producto?.id;
+        if (prodId != null) {
+          mapaStock[prodId] = inv.cantidad ?? inv.stock ?? 0;
+        }
+      });
+    }
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
 
     return listaProductos
       .map((p) => normalizarProducto(p, mapaCategorias, mapaStock))
@@ -147,7 +158,10 @@ if (respInventario.status === 'fulfilled') {
       }),
     }),
 
+<<<<<<< HEAD
     
 
+=======
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
   eliminar: (id) => solicitar(`/productos?id=/${id}`, { method: 'DELETE' }),
 };

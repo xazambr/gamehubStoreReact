@@ -1,5 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FiShoppingCart, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+<<<<<<< HEAD
+=======
+import { PRODUCTOS } from '../../data/productos';
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
 import { useCarrito } from '../../context/CartContext';
 import Layout from '../../components/Layout';
 

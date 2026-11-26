@@ -1,6 +1,7 @@
 import { solicitar } from './api';
 
 export const inventarioService = {
+<<<<<<< HEAD
   // Listado completo
   listar: (opciones) => solicitar('/inventario', opciones),
 
@@ -52,5 +53,13 @@ export const inventarioService = {
   confirmarSalida: (productoId, cantidad) =>
     solicitar(`/inventario/reservas/${productoId}/confirmar?cantidad=${Number(cantidad)}`, {
       method: 'POST',
+=======
+  listar: () => solicitar('/inventario'),
+  obtenerPorProducto: (productoId) => solicitar(`/inventario/producto/${productoId}`),
+  ajustarStock: (id, datos) =>
+    solicitar(`/inventario/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(datos),
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     }),
 };

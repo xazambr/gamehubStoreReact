@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { operacionService } from '../../services/operacionService';
+<<<<<<< HEAD
 import { productosService } from '../../services/productosService';
 import { inventarioService } from '../../services/inventarioService';
+=======
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
 import { formatearCLP } from '../../utils/utils';
 
 export default function PanelOperador() {
@@ -10,7 +13,10 @@ export default function PanelOperador() {
   const [ordenes, setOrdenes] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [inventario, setInventario] = useState([]);
+<<<<<<< HEAD
   const [productos, setProductos] = useState([]);
+=======
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
   const [envios, setEnvios] = useState([]);
 
   const [trackingInput, setTrackingInput] = useState({});
@@ -22,6 +28,7 @@ export default function PanelOperador() {
   async function cargarOperacion() {
     setCargando(true);
     setError(null);
+<<<<<<< HEAD
 
     const [resOrd, resPag, resInv, resEnv, resProd] = await Promise.allSettled([
       operacionService.listarOrdenes(),
@@ -51,6 +58,19 @@ export default function PanelOperador() {
       setProductos(Array.isArray(resProd.value) ? resProd.value : []);
     }
 
+=======
+    const [resOrd, resPag, resInv, resEnv] = await Promise.allSettled([
+      operacionService.listarOrdenes(),
+      operacionService.listarPagos(),
+      operacionService.listarInventario(),
+      operacionService.listarEnvios(),
+    ]);
+
+    if (resOrd.status === 'fulfilled') setOrdenes(Array.isArray(resOrd.value) ? resOrd.value : []);
+    if (resPag.status === 'fulfilled') setPagos(Array.isArray(resPag.value) ? resPag.value : []);
+    if (resInv.status === 'fulfilled') setInventario(Array.isArray(resInv.value) ? resInv.value : []);
+    if (resEnv.status === 'fulfilled') setEnvios(Array.isArray(resEnv.value) ? resEnv.value : []);
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     setCargando(false);
   }
 
@@ -65,7 +85,11 @@ export default function PanelOperador() {
     try {
       await operacionService.actualizarPago(pago.id, { ...pago, estado: nuevoEstado });
       setMensaje(`Pago #${pago.id} actualizado a ${nuevoEstado}.`);
+<<<<<<< HEAD
       await cargarOperacion();
+=======
+      cargarOperacion();
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     } catch (err) {
       setError(err.message || 'Error al actualizar el estado del pago.');
     }
@@ -77,9 +101,13 @@ export default function PanelOperador() {
     setMensaje(null);
 
     const pagoAprobado = pagos.find(
+<<<<<<< HEAD
       (p) =>
         (p.ordenId ?? p.orden?.id) === orden.id &&
         (p.estado ?? '').toUpperCase() === 'APROBADO'
+=======
+      (p) => (p.ordenId ?? p.orden?.id) === orden.id && (p.estado ?? '').toUpperCase() === 'APROBADO'
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     );
 
     if (!pagoAprobado && (orden.estado ?? '').toUpperCase() !== 'PAGADA') {
@@ -100,12 +128,17 @@ export default function PanelOperador() {
         estado: 'EN_CAMINO',
       });
       setMensaje(`Despacho generado para la orden #${orden.id} (Tracking: ${tracking}).`);
+<<<<<<< HEAD
       await cargarOperacion();
+=======
+      cargarOperacion();
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     } catch (err) {
       setError(err.message || 'No se pudo generar el despacho.');
     }
   }
 
+<<<<<<< HEAD
   // Crear (POST) o actualizar (PUT) stock disponible respetando validaciones de Inventario.java
   async function guardarNuevoStock(producto, invExistente) {
     setError(null);
@@ -120,10 +153,21 @@ export default function PanelOperador() {
     const nuevoValor = Number(valorCrudo);
     if (Number.isNaN(nuevoValor) || nuevoValor < 0) {
       setError('El stock disponible no puede ser negativo.');
+=======
+  // Ajustar stock (Regla: el stock no puede quedar negativo)
+  async function guardarNuevoStock(item) {
+    setError(null);
+    setMensaje(null);
+
+    const nuevoValor = Number(stockInput[item.id]);
+    if (Number.isNaN(nuevoValor) || nuevoValor < 0) {
+      setError('El stock no puede ser negativo.');
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
       return;
     }
 
     try {
+<<<<<<< HEAD
       if (invExistente?.id) {
         await inventarioService.actualizar(invExistente.id, invExistente, {
           stockDisponible: nuevoValor,
@@ -143,6 +187,17 @@ export default function PanelOperador() {
       await cargarOperacion();
     } catch (err) {
       setError(err.message || 'Error al guardar el inventario.');
+=======
+      await operacionService.ajustarStock(item.id, {
+        ...item,
+        cantidad: nuevoValor,
+        motivo: 'Ajuste manual desde Panel Operador',
+      });
+      setMensaje(`Stock actualizado a ${nuevoValor} unidades.`);
+      cargarOperacion();
+    } catch (err) {
+      setError(err.message || 'Error al ajustar el inventario.');
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
     }
   }
 
@@ -198,6 +253,7 @@ export default function PanelOperador() {
                     </tr>
                   </thead>
                   <tbody>
+<<<<<<< HEAD
                     {ordenes.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center text-secondary py-3">
@@ -251,6 +307,45 @@ export default function PanelOperador() {
                         );
                       })
                     )}
+=======
+                    {ordenes.map((o) => {
+                      const envioExistente = envios.find((e) => (e.ordenId ?? e.orden?.id) === o.id);
+                      return (
+                        <tr key={o.id}>
+                          <td className="fw-bold">#{o.id}</td>
+                          <td>{formatearCLP(o.total ?? 0)}</td>
+                          <td>
+                            <span className="badge bg-info text-dark">{o.estado || 'PENDIENTE'}</span>
+                          </td>
+                          <td>
+                            {envioExistente ? (
+                              <span className="text-success">
+                                Despachado ({envioExistente.numeroSeguimiento} - {envioExistente.estado})
+                              </span>
+                            ) : (
+                              <div className="d-flex gap-2" style={{ maxWidth: '340px' }}>
+                                <input
+                                  type="text"
+                                  className="form-control form-control-sm"
+                                  placeholder="N° Tracking (ej: GH-1029)"
+                                  value={trackingInput[o.id] || ''}
+                                  onChange={(e) =>
+                                    setTrackingInput({ ...trackingInput, [o.id]: e.target.value })
+                                  }
+                                />
+                                <button
+                                  className="btn btn-primary btn-sm text-nowrap"
+                                  onClick={() => despacharOrden(o)}
+                                >
+                                  Despachar
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
                   </tbody>
                 </table>
               </div>
@@ -270,6 +365,7 @@ export default function PanelOperador() {
                     </tr>
                   </thead>
                   <tbody>
+<<<<<<< HEAD
                     {pagos.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="text-center text-secondary py-3">
@@ -314,17 +410,60 @@ export default function PanelOperador() {
                         </tr>
                       ))
                     )}
+=======
+                    {pagos.map((p) => (
+                      <tr key={p.id}>
+                        <td>#{p.id}</td>
+                        <td>#{p.ordenId ?? p.orden?.id}</td>
+                        <td>{formatearCLP(p.monto ?? 0)}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              p.estado === 'APROBADO'
+                                ? 'bg-success'
+                                : p.estado === 'ANULADO'
+                                ? 'bg-danger'
+                                : 'bg-warning text-dark'
+                            }`}
+                          >
+                            {p.estado}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-success btn-sm"
+                              onClick={() => cambiarEstadoPago(p, 'APROBADO')}
+                            >
+                              Aprobar
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => cambiarEstadoPago(p, 'ANULADO')}
+                            >
+                              Anular
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
                   </tbody>
                 </table>
               </div>
             )}
 
+<<<<<<< HEAD
             {/* INVENTARIO / STOCK */}
+=======
+            {/* AJUSTE DE STOCK */}
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
             {tab === 'inventario' && (
               <div className="table-responsive">
                 <table className="table table-dark table-striped align-middle">
                   <thead>
                     <tr>
+<<<<<<< HEAD
                       <th>Inv. #</th>
                       <th>Producto</th>
                       <th>Ubicación</th>
@@ -405,6 +544,42 @@ export default function PanelOperador() {
                         );
                       })
                     )}
+=======
+                      <th>ID Inv.</th>
+                      <th>Producto ID</th>
+                      <th>Stock Actual</th>
+                      <th>Nuevo Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventario.map((inv) => (
+                      <tr key={inv.id}>
+                        <td>{inv.id}</td>
+                        <td>Producto #{inv.productoId ?? inv.producto?.id}</td>
+                        <td className="fw-bold">{inv.cantidad ?? inv.stock ?? 0} un.</td>
+                        <td>
+                          <div className="d-flex gap-2" style={{ maxWidth: '220px' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              className="form-control form-control-sm"
+                              placeholder="Cantidad"
+                              value={stockInput[inv.id] ?? ''}
+                              onChange={(e) =>
+                                setStockInput({ ...stockInput, [inv.id]: e.target.value })
+                              }
+                            />
+                            <button
+                              className="btn btn-warning btn-sm"
+                              onClick={() => guardarNuevoStock(inv)}
+                            >
+                              Ajustar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+>>>>>>> 8048c79 (Vista Mis ordenes funcionando)
                   </tbody>
                 </table>
               </div>
