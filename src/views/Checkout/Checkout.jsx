@@ -9,7 +9,7 @@ import { useCarrito } from '../../context/CartContext';
 import { useAuth } from '../../auth/useAuth';
 import { checkoutService } from '../../services/checkoutService';
 import { formatearCLP } from '../../utils/utils';
-import './checkout.css'
+import './Checkout.css'
 
 export default function Checkout() {
   const { carrito, subtotal, vaciarCarrito } = useCarrito();
