@@ -19,6 +19,10 @@ export async function solicitar(ruta, opciones = {}) {
     window.dispatchEvent(new Event('sesion-expirada'));
   }
 
+  if (res.status === 403) {
+  throw new Error('Error 403: No tienes permisos para realizar esta acción.');
+}
+
   if (!res.ok) {
     const cuerpo = await res.json().catch(() => ({}));
     throw new Error(cuerpo.mensaje || cuerpo.message || `Error ${res.status}`);
