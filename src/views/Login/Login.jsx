@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import Layout from "../../components/Layout.jsx";
 
 export default function Login() {
   const { login, register } = useAuth();
@@ -42,6 +43,7 @@ export default function Login() {
   }
 
   return (
+    <Layout>
     <div className="container py-5" style={{ maxWidth: '420px' }}>
       <h2 className="mb-4 text-center">
         {esRegistro ? 'Crear cuenta' : 'Iniciar sesión'}
@@ -115,5 +117,6 @@ export default function Login() {
         </button>
       </div>
     </div>
+    </Layout>
   );
 }
