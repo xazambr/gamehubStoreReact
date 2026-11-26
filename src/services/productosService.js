@@ -13,8 +13,13 @@ const IMAGEN_DEFECTO = 'https://placehold.co/400x300/1b2838/66c0f4?text=GameHub+
 
 function extraerLista(respuesta) {
   if (Array.isArray(respuesta)) return respuesta;
-  if (respuesta?._embedded) {
-    return Object.values(respuesta._embedded)[0] || [];
+  if (Array.isArray(respuesta?.content)) return respuesta.content;
+  if (Array.isArray(respuesta?.data)) return respuesta.data;
+  if (respuesta?._embedded && typeof respuesta._embedded === 'object') {
+    const primeraClave = Object.keys(respuesta._embedded)[0];
+    if (primeraClave && Array.isArray(respuesta._embedded[primeraClave])) {
+      return respuesta._embedded[primeraClave];
+    }
   }
   return [];
 }
@@ -149,5 +154,9 @@ if (respInventario.status === 'fulfilled') {
 
     
 
-  eliminar: (id) => solicitar(`/productos?id=/${id}`, { method: 'DELETE' }),
+  async eliminar(id) {
+  return solicitar(`/productos?id=${Number(id)}`, {
+    method: 'DELETE',
+  });
+},
 };

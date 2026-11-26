@@ -1,5 +1,5 @@
 import { solicitar } from './api';
-import { inventarioService } from './inventarioService';
+import { resolverIdUsuarioReal } from './ordenesService';
 
 export const checkoutService = {
   // Consulta promociones activas desde msvc-promotion
@@ -19,7 +19,12 @@ export const checkoutService = {
       if (encontrada) {
         return {
           codigo: limpio,
-          porcentaje: Number(encontrada.descuentoPorcentaje ?? encontrada.porcentaje ?? encontrada.descuento ?? 10),
+          porcentaje: Number(
+            encontrada.porcentajeDescuento ??
+            encontrada.descuentoPorcentaje ??
+            encontrada.porcentaje ??
+            encontrada.descuento
+          ),
         };
       }
     } catch {
@@ -33,49 +38,65 @@ export const checkoutService = {
     throw new Error('Cupón inválido o vencido.');
   },
 
-  // Ejecuta el flujo completo de compra: Reservar Stock -> Crear Orden -> Registrar Pago
-async procesarCompra({ usuario, carrito, direccionEnvio, metodoPago, subtotal, descuento, costoEnvio, total, cupon }) {
-  if (!carrito || carrito.length === 0) {
-    throw new Error('Tu carrito está vacío.');
-  }
-
-  // 1. Crear la orden en msvc-orders (el propio backend reserva el stock en msvc-inventory)
-  const payloadOrden = {
-    usuarioId: Number(usuario?.id ?? 1),
-    username: usuario?.username || usuario?.email || 'cliente',
-    metodoPago: metodoPago || 'TARJETA_CREDITO',
-    juegosIds: carrito.flatMap((item) =>
-      Array.from({ length: Number(item.cantidad) }, () => Number(item.id))
-    ),
+  // Ejecuta el flujo completo de compra: Crear Orden (reserva stock) -> Registrar Pago
+  async procesarCompra({
+    usuario,
+    carrito,
     direccionEnvio,
-    cuponAplicado: cupon || null,
-    subtotal: Math.round(subtotal),
-    descuento: Math.round(descuento),
-    costoEnvio: Math.round(costoEnvio),
-    total: Math.round(total),
-    estado: 'PENDIENTE',
-  };
+    metodoPago,
+    subtotal,
+    descuento,
+    costoEnvio,
+    total,
+    cupon,
+  }) {
+    if (!carrito || carrito.length === 0) {
+      throw new Error('Tu carrito está vacío.');
+    }
 
-  const ordenCreada = await solicitar('/orden', {
-    method: 'POST',
-    body: JSON.stringify(payloadOrden),
-  });
+    // Obtener el ID numérico real del usuario autenticado (sesión, JWT o msvc-users)
+    const usuarioId = await resolverIdUsuarioReal(usuario);
+    if (!usuarioId) {
+      throw new Error('No se pudo identificar tu ID de usuario. Vuelve a iniciar sesión e inténtalo de nuevo.');
+    }
 
-  const ordenId = ordenCreada?.id ?? ordenCreada?.ordenId;
+    // 1. Crear la orden en msvc-orders (el propio backend reserva el stock en msvc-inventory)
+    const payloadOrden = {
+      usuarioId: Number(usuarioId),
+      username: usuario?.username || usuario?.email || 'cliente',
+      metodoPago: metodoPago || 'TARJETA_CREDITO',
+      juegosIds: carrito.flatMap((item) =>
+        Array.from({ length: Number(item.cantidad) }, () => Number(item.id))
+      ),
+      direccionEnvio,
+      cuponAplicado: cupon || null,
+      subtotal: Math.round(subtotal),
+      descuento: Math.round(descuento),
+      costoEnvio: Math.round(costoEnvio),
+      total: Math.round(total),
+      estado: 'PENDIENTE',
+    };
 
-  // 2. Registrar el pago en msvc-payments
-  if (ordenId) {
-    await solicitar('/pago', {
+    const ordenCreada = await solicitar('/orden', {
       method: 'POST',
-      body: JSON.stringify({
-        ordenId: Number(ordenId),
-        monto: Math.round(total),
-        metodoPago: metodoPago || 'TARJETA_CREDITO',
-        estado: 'PENDIENTE',
-      }),
+      body: JSON.stringify(payloadOrden),
     });
-  }
 
-  return ordenCreada;
-}
+    const ordenId = ordenCreada?.id ?? ordenCreada?.ordenId;
+
+    // 2. Registrar el pago en msvc-payments vinculado al ordenId real
+    if (ordenId) {
+      await solicitar('/pago', {
+        method: 'POST',
+        body: JSON.stringify({
+          ordenId: Number(ordenId),
+          monto: Math.round(total),
+          metodoPago: metodoPago || 'TARJETA_CREDITO',
+          estado: 'PENDIENTE',
+        }),
+      });
+    }
+
+    return ordenCreada;
+  },
 };
