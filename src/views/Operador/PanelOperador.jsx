@@ -72,7 +72,7 @@ export default function PanelOperador() {
     cargarOperacion();
   }, []);
 
-  // Aprobar o anular pago en msvc-payments
+  // Aprobar o anular pago en msvc-payments y sincronizar estado de la orden
   async function cambiarEstadoPago(pago, nuevoEstado) {
     setError(null);
     setMensaje(null);
@@ -80,6 +80,13 @@ export default function PanelOperador() {
 
     try {
       await operacionService.actualizarPago(pago.id, pago, nuevoEstado);
+
+      const ordenId = pago.ordenId ?? pago.orden?.id;
+      if (ordenId) {
+        const estadoOrdenDestino = nuevoEstado === 'APROBADO' ? 'PAGADA' : 'CANCELADA';
+        await operacionService.actualizarEstadoOrden(ordenId, estadoOrdenDestino).catch(() => null);
+      }
+
       setMensaje(`Pago #${pago.id} marcado como ${nuevoEstado}.`);
       await cargarOperacion();
     } catch (err) {
@@ -89,7 +96,46 @@ export default function PanelOperador() {
     }
   }
 
-  // Generar despacho en msvc-shipping (solo si el pago está APROBADO)
+  // Cambiar manualmente el estado de la orden en msvc-orders
+  async function cambiarEstadoOrdenDirecto(ordenId, nuevoEstado) {
+    setError(null);
+    setMensaje(null);
+    setProcesandoId(`estado-ord-${ordenId}`);
+
+    try {
+      await operacionService.actualizarEstadoOrden(ordenId, nuevoEstado);
+      setMensaje(`Estado de la orden #${ordenId} actualizado a ${nuevoEstado}.`);
+      await cargarOperacion();
+    } catch (err) {
+      setError(err.message || `No se pudo cambiar el estado de la orden #${ordenId}.`);
+    } finally {
+      setProcesandoId(null);
+    }
+  }
+
+  // Cambiar el estado del envío en msvc-shipping (y marcar orden como ENTREGADA si corresponde)
+  async function cambiarEstadoEnvioDirecto(envio, ordenId, nuevoEstadoEnvio) {
+    setError(null);
+    setMensaje(null);
+    setProcesandoId(`envio-${envio.id}`);
+
+    try {
+      await operacionService.actualizarEnvio(envio.id, nuevoEstadoEnvio);
+
+      if (nuevoEstadoEnvio === 'ENTREGADO' && ordenId) {
+        await operacionService.actualizarEstadoOrden(ordenId, 'ENTREGADA').catch(() => null);
+      }
+
+      setMensaje(`Envío #${envio.id} actualizado a ${nuevoEstadoEnvio}.`);
+      await cargarOperacion();
+    } catch (err) {
+      setError(err.message || `No se pudo actualizar el envío #${envio.id}.`);
+    } finally {
+      setProcesandoId(null);
+    }
+  }
+
+  // Generar despacho en msvc-shipping y actualizar orden a DESPACHADA
   async function despacharOrden(orden) {
     setError(null);
     setMensaje(null);
@@ -123,12 +169,13 @@ export default function PanelOperador() {
         direccionDestino: orden.direccionEnvio || orden.direccionDestino || 'Despacho estándar',
         empresaTransporte,
         numeroSeguimiento: tracking,
-        codigoSeguimiento: tracking,
-        estado: 'EN_CAMINO',
       });
+
+      await operacionService.actualizarEstadoOrden(ordenId, 'DESPACHADA').catch(() => null);
+
       setTrackingInput((prev) => ({ ...prev, [ordenId]: '' }));
       setMensaje(
-        `Despacho generado para la orden #${ordenId} vía ${empresaTransporte} (Tracking: ${tracking}).`
+        `Despacho generado para la orden #${ordenId} vía ${empresaTransporte}.`
       );
       await cargarOperacion();
     } catch (err) {
@@ -285,17 +332,47 @@ export default function PanelOperador() {
                               </span>
                             </td>
                             <td>
-                              <span className="badge bg-info text-dark">
-                                {o.estado || 'PENDIENTE'}
-                              </span>
+                              <select
+                                className="form-select form-select-sm bg-dark text-light border-secondary"
+                                style={{ maxWidth: '145px' }}
+                                value={o.estado || 'creada'}
+                                disabled={procesandoId === `estado-ord-${ordenId}`}
+                                onChange={(e) =>
+                                  cambiarEstadoOrdenDirecto(ordenId, e.target.value)
+                                }
+                              >
+                                <option value="creada">creada</option>
+                                <option value="PAGADA">PAGADA</option>
+                                <option value="DESPACHADA">DESPACHADA</option>
+                                <option value="ENTREGADA">ENTREGADA</option>
+                                <option value="CANCELADA">CANCELADA</option>
+                              </select>
                             </td>
                             <td>
                               {envioExistente ? (
-                                <span className="text-success fw-semibold">
-                                  Despachado ({envioExistente.empresaTransporte || 'Courier'} ·{' '}
-                                  {envioExistente.numeroSeguimiento || envioExistente.codigoSeguimiento} ·{' '}
-                                  {envioExistente.estado})
-                                </span>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
+                                  <span className="text-success fw-semibold">
+                                    {envioExistente.empresaTransporte || 'Courier'} ·{' '}
+                                    {envioExistente.numeroSeguimiento}
+                                  </span>
+                                  <select
+                                    className="form-select form-select-sm bg-dark text-light border-success"
+                                    style={{ maxWidth: '140px' }}
+                                    value={envioExistente.estadoEnvio || 'PENDIENTE'}
+                                    disabled={procesandoId === `envio-${envioExistente.id}`}
+                                    onChange={(e) =>
+                                      cambiarEstadoEnvioDirecto(
+                                        envioExistente,
+                                        ordenId,
+                                        e.target.value
+                                      )
+                                    }
+                                  >
+                                    <option value="PENDIENTE">PENDIENTE</option>
+                                    <option value="EN_CAMINO">EN_CAMINO</option>
+                                    <option value="ENTREGADO">ENTREGADO</option>
+                                  </select>
+                                </div>
                               ) : (
                                 <div className="d-flex gap-2" style={{ maxWidth: '440px' }}>
                                   <select

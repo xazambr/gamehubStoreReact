@@ -50,7 +50,13 @@ export default function PanelAdmin() {
 
     if (resProd.status === 'fulfilled') setProductos(resProd.value);
     if (resCat.status === 'fulfilled') setCategorias(Array.isArray(resCat.value) ? resCat.value : []);
-    if (resPromo.status === 'fulfilled') setPromociones(Array.isArray(resPromo.value) ? resPromo.value : []);
+
+    if (resPromo.status === 'fulfilled') {
+      setPromociones(Array.isArray(resPromo.value) ? resPromo.value : []);
+    } else {
+      console.error('Error al listar promociones desde GET /promociones:', resPromo.reason);
+    }
+
     setCargando(false);
   }
 
@@ -126,14 +132,20 @@ export default function PanelAdmin() {
     }
 
     try {
-      await operacionService.crearPromocion({
+      const creada = await operacionService.crearPromocion({
         ...formPromo,
         descuentoPorcentaje: Number(formPromo.descuentoPorcentaje),
         topeUsos: Number(formPromo.topeUsos),
       });
+
+      // Si el backend devuelve la promoción creada, la reflejamos de inmediato en la tabla
+      if (creada && typeof creada === 'object') {
+        setPromociones((prev) => [creada, ...prev]);
+      }
+
       setFormPromo(promoInicial);
       setMensaje('Promoción creada correctamente.');
-      cargarTodo();
+      await cargarTodo();
     } catch (err) {
       setError(err.message || 'Error al crear la promoción.');
     }
@@ -484,9 +496,13 @@ export default function PanelAdmin() {
                       {promociones.map((pr, idx) => (
                         <tr key={pr.id ?? idx}>
                           <td className="fw-bold text-info">{pr.codigo}</td>
-                          <td>{pr.descuentoPorcentaje ?? pr.descuento}%</td>
-                          <td>{pr.fechaInicio} al {pr.fechaFin}</td>
-                          <td>{pr.topeUsos}</td>
+                          <td>{pr.porcentajeDescuento ?? pr.descuentoPorcentaje ?? pr.descuento}%</td>
+                          <td>
+                            {pr.fechaInicio
+                              ? `${pr.fechaInicio.split('T')[0]} al ${(pr.fechaExpiracion ?? pr.fechaFin)?.split('T')[0]}`
+                              : `Hasta ${(pr.fechaExpiracion ?? pr.fechaFin)?.split('T')[0] || 'Sin fecha'}`}
+                          </td>
+                          <td>{pr.topeDeUsos ?? pr.topeUsos ?? 'Ilimitado / BD'}</td>
                         </tr>
                       ))}
                     </tbody>
