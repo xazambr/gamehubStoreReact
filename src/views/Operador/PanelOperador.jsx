@@ -14,8 +14,10 @@ export default function PanelOperador() {
   const [envios, setEnvios] = useState([]);
 
   const [trackingInput, setTrackingInput] = useState({});
+  const [empresaInput, setEmpresaInput] = useState({});
   const [stockInput, setStockInput] = useState({});
   const [cargando, setCargando] = useState(true);
+  const [procesandoId, setProcesandoId] = useState(null);
   const [mensaje, setMensaje] = useState(null);
   const [error, setError] = useState(null);
 
@@ -31,24 +33,36 @@ export default function PanelOperador() {
       productosService.listar(),
     ]);
 
+    const erroresCarga = [];
+
     if (resOrd.status === 'fulfilled') {
       setOrdenes(Array.isArray(resOrd.value) ? resOrd.value : []);
+    } else {
+      erroresCarga.push(`Órdenes: ${resOrd.reason?.message || 'Error al consultar /orden'}`);
     }
+
     if (resPag.status === 'fulfilled') {
       setPagos(Array.isArray(resPag.value) ? resPag.value : []);
+    } else {
+      erroresCarga.push(`Pagos: ${resPag.reason?.message || 'Error al consultar /pago'}`);
     }
+
     if (resInv.status === 'fulfilled') {
       setInventario(Array.isArray(resInv.value) ? resInv.value : []);
     } else {
-      setError(
-        `Error cargando inventario: ${resInv.reason?.message || 'Revisa puerto/seguridad de msvc-inventory'}`
-      );
+      erroresCarga.push(`Inventario: ${resInv.reason?.message || 'Error al consultar /inventario'}`);
     }
+
     if (resEnv.status === 'fulfilled') {
       setEnvios(Array.isArray(resEnv.value) ? resEnv.value : []);
     }
+
     if (resProd.status === 'fulfilled') {
       setProductos(Array.isArray(resProd.value) ? resProd.value : []);
+    }
+
+    if (erroresCarga.length > 0) {
+      setError(erroresCarga.join(' | '));
     }
 
     setCargando(false);
@@ -58,55 +72,73 @@ export default function PanelOperador() {
     cargarOperacion();
   }, []);
 
-  // Confirmar o anular pago
+  // Aprobar o anular pago en msvc-payments
   async function cambiarEstadoPago(pago, nuevoEstado) {
     setError(null);
     setMensaje(null);
+    setProcesandoId(`pago-${pago.id}`);
+
     try {
-      await operacionService.actualizarPago(pago.id, { ...pago, estado: nuevoEstado });
-      setMensaje(`Pago #${pago.id} actualizado a ${nuevoEstado}.`);
+      await operacionService.actualizarPago(pago.id, pago, nuevoEstado);
+      setMensaje(`Pago #${pago.id} marcado como ${nuevoEstado}.`);
       await cargarOperacion();
     } catch (err) {
-      setError(err.message || 'Error al actualizar el estado del pago.');
+      setError(err.message || `No se pudo actualizar el pago #${pago.id}.`);
+    } finally {
+      setProcesandoId(null);
     }
   }
 
-  // Generar despacho (Regla: solo si la orden tiene pago aprobado)
+  // Generar despacho en msvc-shipping (solo si el pago está APROBADO)
   async function despacharOrden(orden) {
     setError(null);
     setMensaje(null);
 
-    const pagoAprobado = pagos.find(
-      (p) =>
-        (p.ordenId ?? p.orden?.id) === orden.id &&
-        (p.estado ?? '').toUpperCase() === 'APROBADO'
+    const ordenId = orden.id ?? orden.ordenId;
+    const pagoAsociado = pagos.find(
+      (p) => Number(p.ordenId ?? p.orden?.id) === Number(ordenId)
     );
+    const estadoPago = (pagoAsociado?.estado ?? '').toUpperCase();
+    const estadoOrden = (orden.estado ?? '').toUpperCase();
 
-    if (!pagoAprobado && (orden.estado ?? '').toUpperCase() !== 'PAGADA') {
-      setError(`No se puede despachar la orden #${orden.id}: el pago aún no está aprobado.`);
+    if (estadoPago !== 'APROBADO' && estadoOrden !== 'PAGADA' && estadoOrden !== 'COMPLETADA') {
+      setError(
+        `No se puede despachar la orden #${ordenId}: primero debes aprobar su pago en la pestaña Pagos.`
+      );
       return;
     }
 
-    const tracking = trackingInput[orden.id]?.trim();
+    const tracking = trackingInput[ordenId]?.trim();
     if (!tracking) {
       setError('Debes ingresar un número de seguimiento antes de despachar.');
       return;
     }
 
+    const empresaTransporte = empresaInput[ordenId] || 'Chilexpress';
+
+    setProcesandoId(`orden-${ordenId}`);
     try {
       await operacionService.crearEnvio({
-        ordenId: orden.id,
+        ordenId: Number(ordenId),
+        direccionDestino: orden.direccionEnvio || orden.direccionDestino || 'Despacho estándar',
+        empresaTransporte,
         numeroSeguimiento: tracking,
+        codigoSeguimiento: tracking,
         estado: 'EN_CAMINO',
       });
-      setMensaje(`Despacho generado para la orden #${orden.id} (Tracking: ${tracking}).`);
+      setTrackingInput((prev) => ({ ...prev, [ordenId]: '' }));
+      setMensaje(
+        `Despacho generado para la orden #${ordenId} vía ${empresaTransporte} (Tracking: ${tracking}).`
+      );
       await cargarOperacion();
     } catch (err) {
       setError(err.message || 'No se pudo generar el despacho.');
+    } finally {
+      setProcesandoId(null);
     }
   }
 
-  // Crear (POST) o actualizar (PUT) stock disponible respetando validaciones de Inventario.java
+  // Crear o ajustar stock disponible en msvc-inventory
   async function guardarNuevoStock(producto, invExistente) {
     setError(null);
     setMensaje(null);
@@ -123,6 +155,7 @@ export default function PanelOperador() {
       return;
     }
 
+    setProcesandoId(`stock-${producto.id}`);
     try {
       if (invExistente?.id) {
         await inventarioService.actualizar(invExistente.id, invExistente, {
@@ -143,13 +176,24 @@ export default function PanelOperador() {
       await cargarOperacion();
     } catch (err) {
       setError(err.message || 'Error al guardar el inventario.');
+    } finally {
+      setProcesandoId(null);
     }
   }
 
   return (
     <Layout>
       <main className="container-xl py-5 text-light">
-        <h1 className="fs-3 mb-4">Panel del Operador</h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="fs-3 mb-0">Panel del Operador</h1>
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={cargarOperacion}
+            disabled={cargando}
+          >
+            Actualizar datos
+          </button>
+        </div>
 
         <ul className="nav nav-pills mb-4 gap-2">
           <li className="nav-item">
@@ -157,7 +201,7 @@ export default function PanelOperador() {
               className={`nav-link ${tab === 'ordenes' ? 'active' : 'text-light'}`}
               onClick={() => setTab('ordenes')}
             >
-              Órdenes y Despachos
+              Órdenes y Despachos ({ordenes.length})
             </button>
           </li>
           <li className="nav-item">
@@ -165,7 +209,7 @@ export default function PanelOperador() {
               className={`nav-link ${tab === 'pagos' ? 'active' : 'text-light'}`}
               onClick={() => setTab('pagos')}
             >
-              Pagos
+              Pagos ({pagos.length})
             </button>
           </li>
           <li className="nav-item">
@@ -173,7 +217,7 @@ export default function PanelOperador() {
               className={`nav-link ${tab === 'inventario' ? 'active' : 'text-light'}`}
               onClick={() => setTab('inventario')}
             >
-              Inventario / Stock
+              Inventario / Stock ({productos.length})
             </button>
           </li>
         </ul>
@@ -185,34 +229,61 @@ export default function PanelOperador() {
           <div className="alert alert-info">Cargando bandeja operativa...</div>
         ) : (
           <>
-            {/* BANDEJA DE ÓRDENES Y DESPACHOS */}
+            {/* 1. BANDEJA DE ÓRDENES Y DESPACHOS */}
             {tab === 'ordenes' && (
               <div className="table-responsive">
                 <table className="table table-dark table-striped align-middle">
                   <thead>
                     <tr>
                       <th>Orden #</th>
+                      <th>Cliente / Dirección</th>
                       <th>Total</th>
+                      <th>Pago</th>
                       <th>Estado Orden</th>
-                      <th>Seguimiento / Despacho</th>
+                      <th>Transporte y Seguimiento</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ordenes.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center text-secondary py-3">
+                        <td colSpan="6" className="text-center text-secondary py-4">
                           No hay órdenes registradas.
                         </td>
                       </tr>
                     ) : (
                       ordenes.map((o) => {
-                        const envioExistente = envios.find(
-                          (e) => (e.ordenId ?? e.orden?.id) === o.id
+                        const ordenId = o.id ?? o.ordenId;
+                        const pagoAsociado = pagos.find(
+                          (p) => Number(p.ordenId ?? p.orden?.id) === Number(ordenId)
                         );
+                        const envioExistente = envios.find(
+                          (e) => Number(e.ordenId ?? e.orden?.id) === Number(ordenId)
+                        );
+                        const estadoPago = (pagoAsociado?.estado || 'SIN PAGO').toUpperCase();
+
                         return (
-                          <tr key={o.id}>
-                            <td className="fw-bold">#{o.id}</td>
-                            <td>{formatearCLP(o.total ?? 0)}</td>
+                          <tr key={ordenId}>
+                            <td className="fw-bold">#{ordenId}</td>
+                            <td>
+                              <div>{o.username || `Usuario #${o.usuarioId ?? '-'}`}</div>
+                              <small className="text-secondary">
+                                {o.direccionEnvio || o.direccionDestino || 'Sin dirección especificada'}
+                              </small>
+                            </td>
+                            <td>{formatearCLP(o.total ?? o.montoTotal ?? 0)}</td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  estadoPago === 'APROBADO'
+                                    ? 'bg-success'
+                                    : estadoPago === 'ANULADO'
+                                    ? 'bg-danger'
+                                    : 'bg-warning text-dark'
+                                }`}
+                              >
+                                {estadoPago}
+                              </span>
+                            </td>
                             <td>
                               <span className="badge bg-info text-dark">
                                 {o.estado || 'PENDIENTE'}
@@ -220,26 +291,44 @@ export default function PanelOperador() {
                             </td>
                             <td>
                               {envioExistente ? (
-                                <span className="text-success">
-                                  Despachado ({envioExistente.numeroSeguimiento} -{' '}
+                                <span className="text-success fw-semibold">
+                                  Despachado ({envioExistente.empresaTransporte || 'Courier'} ·{' '}
+                                  {envioExistente.numeroSeguimiento || envioExistente.codigoSeguimiento} ·{' '}
                                   {envioExistente.estado})
                                 </span>
                               ) : (
-                                <div className="d-flex gap-2" style={{ maxWidth: '340px' }}>
+                                <div className="d-flex gap-2" style={{ maxWidth: '440px' }}>
+                                  <select
+                                    className="form-select form-select-sm"
+                                    style={{ maxWidth: '140px' }}
+                                    value={empresaInput[ordenId] || 'Chilexpress'}
+                                    onChange={(e) =>
+                                      setEmpresaInput({
+                                        ...empresaInput,
+                                        [ordenId]: e.target.value,
+                                      })
+                                    }
+                                  >
+                                    <option value="Chilexpress">Chilexpress</option>
+                                    <option value="Starken">Starken</option>
+                                    <option value="Blue Express">Blue Express</option>
+                                    <option value="Correos de Chile">Correos de Chile</option>
+                                  </select>
                                   <input
                                     type="text"
                                     className="form-control form-control-sm"
                                     placeholder="N° Tracking (ej: GH-1029)"
-                                    value={trackingInput[o.id] || ''}
+                                    value={trackingInput[ordenId] || ''}
                                     onChange={(e) =>
                                       setTrackingInput({
                                         ...trackingInput,
-                                        [o.id]: e.target.value,
+                                        [ordenId]: e.target.value,
                                       })
                                     }
                                   />
                                   <button
                                     className="btn btn-primary btn-sm text-nowrap"
+                                    disabled={procesandoId === `orden-${ordenId}`}
                                     onClick={() => despacharOrden(o)}
                                   >
                                     Despachar
@@ -256,7 +345,7 @@ export default function PanelOperador() {
               </div>
             )}
 
-            {/* BANDEJA DE PAGOS */}
+            {/* 2. BANDEJA DE PAGOS */}
             {tab === 'pagos' && (
               <div className="table-responsive">
                 <table className="table table-dark table-striped align-middle">
@@ -264,6 +353,7 @@ export default function PanelOperador() {
                     <tr>
                       <th>Pago #</th>
                       <th>Orden #</th>
+                      <th>Método</th>
                       <th>Monto</th>
                       <th>Estado</th>
                       <th>Acciones</th>
@@ -272,54 +362,62 @@ export default function PanelOperador() {
                   <tbody>
                     {pagos.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center text-secondary py-3">
+                        <td colSpan="6" className="text-center text-secondary py-4">
                           No hay pagos registrados.
                         </td>
                       </tr>
                     ) : (
-                      pagos.map((p) => (
-                        <tr key={p.id}>
-                          <td>#{p.id}</td>
-                          <td>#{p.ordenId ?? p.orden?.id}</td>
-                          <td>{formatearCLP(p.monto ?? 0)}</td>
-                          <td>
-                            <span
-                              className={`badge ${
-                                p.estado === 'APROBADO'
-                                  ? 'bg-success'
-                                  : p.estado === 'ANULADO'
-                                  ? 'bg-danger'
-                                  : 'bg-warning text-dark'
-                              }`}
-                            >
-                              {p.estado}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="d-flex gap-2">
-                              <button
-                                className="btn btn-success btn-sm"
-                                onClick={() => cambiarEstadoPago(p, 'APROBADO')}
+                      pagos.map((p) => {
+                        const estadoActual = (p.estado || 'PENDIENTE').toUpperCase();
+                        const cargandoFila = procesandoId === `pago-${p.id}`;
+
+                        return (
+                          <tr key={p.id}>
+                            <td className="fw-bold">#{p.id}</td>
+                            <td>#{p.ordenId ?? p.orden?.id ?? '-'}</td>
+                            <td>{p.metodoPago || 'TARJETA'}</td>
+                            <td>{formatearCLP(p.monto ?? 0)}</td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  estadoActual === 'APROBADO'
+                                    ? 'bg-success'
+                                    : estadoActual === 'ANULADO'
+                                    ? 'bg-danger'
+                                    : 'bg-warning text-dark'
+                                }`}
                               >
-                                Aprobar
-                              </button>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => cambiarEstadoPago(p, 'ANULADO')}
-                              >
-                                Anular
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                                {estadoActual}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="d-flex gap-2">
+                                <button
+                                  className="btn btn-success btn-sm"
+                                  disabled={cargandoFila || estadoActual === 'APROBADO'}
+                                  onClick={() => cambiarEstadoPago(p, 'APROBADO')}
+                                >
+                                  Aprobar
+                                </button>
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
+                                  disabled={cargandoFila || estadoActual === 'ANULADO'}
+                                  onClick={() => cambiarEstadoPago(p, 'ANULADO')}
+                                >
+                                  Anular
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
             )}
 
-            {/* INVENTARIO / STOCK */}
+            {/* 3. INVENTARIO / STOCK */}
             {tab === 'inventario' && (
               <div className="table-responsive">
                 <table className="table table-dark table-striped align-middle">
@@ -337,7 +435,7 @@ export default function PanelOperador() {
                   <tbody>
                     {productos.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center text-secondary py-3">
+                        <td colSpan="7" className="text-center text-secondary py-4">
                           No hay productos activos en el catálogo.
                         </td>
                       </tr>
@@ -395,6 +493,7 @@ export default function PanelOperador() {
                                 />
                                 <button
                                   className="btn btn-warning btn-sm"
+                                  disabled={procesandoId === `stock-${prod.id}`}
                                   onClick={() => guardarNuevoStock(prod, inv)}
                                 >
                                   {inv ? 'Ajustar' : 'Crear'}
